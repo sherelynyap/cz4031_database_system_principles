@@ -6,32 +6,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Disk {
-    static final int DISK_SIZE = Config.DISK_CAPACITY;
-    int sizeOfDisk;
+    static final int DISK_SIZE = Config.DISK_CAPACITY; // unnecessary
     int maxBlkSize;
     int blkSize;
     int blkCounts;
 
     int blkAccess;
     ArrayList<Block> blkList;
-    int countOfRecords;
+    int recordCount;
 
     public Disk(int blkSize) {
-        this.sizeOfDisk = DISK_SIZE;
         this.blkSize = blkSize;
         this.maxBlkSize = (int) Math.floor(DISK_SIZE / blkSize);
         this.blkList = new ArrayList<>();
-        this.countOfRecords = 0;
+        this.recordCount = 0;
         blkCounts = blkList.size();
     }
 
     public ArrayList<Block> doBlockRetrieval(){
         return this.blkList;
-    }
-
-
-    public int getSizeOfDiskUsed() {
-        return blkCounts * blkSize;
     }
 
     private int getIdOfLastBlk() {
@@ -53,13 +46,13 @@ public class Disk {
         throws exception
      If an available block found:
         Calls doRecordInsertion() of the Block class to insert the record into the block.
-        Increment the countOfRecords counter.
+        Increment the recordCount counter.
         Returns a new Address object representing the location of the newly inserted record.
      */
     private Address doRecordInsertionAt(int blockId, Record record) throws Exception {
         Block block = null;
 
-        if (blockId>=0){
+        if (blockId >= 0){
             block = blkList.get(blockId);
         }
 
@@ -75,7 +68,7 @@ public class Disk {
             blockId = getIdOfLastBlk();
         }
         int offset = block.doRecordInsertion(record);
-        countOfRecords++;
+        recordCount++;
 
         return new Address(blockId, offset);
     }
@@ -85,7 +78,7 @@ public class Disk {
      based on the address offset
      */
     public Record doRecordFetch(Address address) {
-        return blkList.get(address.blkId).data[address.offset];
+        return blkList.get(address.blockID).records[address.offset];
     }
 
     /**
@@ -98,7 +91,7 @@ public class Disk {
      specified in the Address object.
 
      If the deletion is successful (i.e. the specified record is found and deleted):
-        decrement countOfRecords counter
+        decrement recordCount counter
         If the block becomes empty (i.e. all records in it have been deleted):
             decrement the blkCounts counter
      If the deletion is unsuccessful:
@@ -109,10 +102,10 @@ public class Disk {
 
         try {
             for (Address address : addressList) {
-                block = blkList.get(address.blkId);
+                block = blkList.get(address.blockID);
                 // will only return true if the block is empty
                 boolean result = block.doRecordDeletionAt(address.offset);
-                countOfRecords--;
+                recordCount--;
                 blkAccess++;
                 if(result){
                     blkCounts--;
@@ -147,10 +140,10 @@ public class Disk {
 
         try {
             for (Address address : addressList) {
-                if(!blockAccessed.contains(address.blkId)){
-                    blockAccessed.add(address.blkId);
-                    Block block = this.blkList.get(address.blkId);
-                    Record records[] = block.data;
+                if(!blockAccessed.contains(address.blockID)){
+                    blockAccessed.add(address.blockID);
+                    Block block = this.blkList.get(address.blockID);
+                    Record records[] = block.records;
                     blkAccess++;
                 }
                 recordList.add(doRecordFetch(address));
@@ -160,13 +153,15 @@ public class Disk {
         }
         return recordList;
     }
+
     public int getCurrentBlkAccess() {
         return blkAccess;
     }
+
     public void showDetails(){
-        System.out.println("Num of records: " + countOfRecords);
-        System.out.println("Size of a record: " + Storage.Record.size());
-        System.out.println("Num of records stored in a block: " + (int) Math.floor(blkSize / Storage.Record.size()));
-        System.out.println("Num of blocks for storing the data: " + blkCounts);
+        System.out.println("Number of records: " + recordCount);
+        System.out.println("Size of a record: " + Record.size);
+        System.out.println("Number of records stored in a block: " + (int) Math.floor(blkSize / Record.size));
+        System.out.println("Number of blocks for storing the data: " + blkCounts);
     }
 }

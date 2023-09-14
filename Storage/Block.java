@@ -1,49 +1,44 @@
 package Storage;
 
+import Config.Config;
+
 public class Block {
-    int maxRecords;
-    int currRecords;
-    Record[] data;
+    public static int maxRecordCount = (int) Math.floor(Config.BLOCK_SIZE / Record.size);
+    int recordCount;
+    Record[] records;
 
     public Block(){
-
-    }
-    public Block(int size){
-        this.currRecords = 0;
-        this.maxRecords = (int) Math.floor(size / Record.size());
-        this.data = new Record[maxRecords];
+        this.recordCount = 0;
+        this.records = new Record[maxRecordCount];
     }
 
-    public boolean isBlockFull() {
-        return currRecords >= maxRecords;
+    public boolean isFull() {
+        return recordCount >= maxRecordCount;
     }
 
-    // return all the records in the block
-    public Record[] doAllRecordRetrieval() {
-        return this.data;
+    public Record getRecordAt(int offset){
+        return records[offset];
     }
 
-    /**
-     doRecordInsertion(Record newRecord): Insert a new record into a block of data.
-     If the block is not full:
-        Iterates through the data array to find the first null element and adds the newRecord to that index.
-        It then increments the currRecords counter and returns the offset of the inserted record.
-     If the block is full:
-        Does not add the new record and returns -1 to indicate that the insertion was unsuccessful.
-     */
-    public int doRecordInsertion(Record newRecord) {
+    public Record[] getRecords() {
+        return this.records;
+    }
+
+    public int insertRecord(Record newRecord) {
         int offset = -1;
         try {
-            if (!isBlockFull()) {
+            if (!isFull()) {
                 // we can add a record
-                for(int i = 0; i < data.length; i++){
-                    if(data[i] == null){
-                        data[i] = newRecord;
-                        currRecords++;
+                for(int i = 0; i < records.length; i++){
+                    if(records[i] == null){
+                        records[i] = newRecord;
+                        recordCount++;
                         offset = i;
                         break;
                     }
                 }
+            } else {
+                //throw error here??
             }
         } catch (Error e) {
             System.out.println("Inserting Record Unsuccessful: " + e.getMessage());
@@ -51,45 +46,17 @@ public class Block {
         return offset;
     }
 
-    /**
-     doRecordDeletionAt(int offset): takes offset and attempts to delete the record at that position in the data array of the block.
-
-     If a record exists at the specified offset:
-        Deletion happens by setting the element in the data array to null.
-        Decrements the currRecords count to reflect the deletion.
-
-     Returns a boolean value to indicate whether the record was successfully deleted.
-     */
-    public boolean doRecordDeletionAt(int offset){
-        boolean success = false;
-        if (data[offset] != null){
-            data[offset] = null;
-            // if currRecords becomes 0, indicates block is empty, return
-            currRecords--;
-            if (currRecords == 0) {
-                success = true;
+    public boolean deleteRecordAt(int offset){
+        // can simplify?
+        //try catch
+        boolean emptied = false;
+        if (records[offset] != null){
+            records[offset] = null;
+            recordCount--;
+            if (recordCount == 0) {
+                emptied = true;
             }
         }
-        return success;
-    }
-
-    /**
-     doRecordRetrievalAt(int offset): given the offset, do record retrival in the data array of records
-     */
-    public Record doRecordRetrievalAt(int offset){
-        return data[offset];
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < data.length; i++){
-            if (i > 0){
-                sb.append(", ");
-            }
-            sb.append(String.format("%d:{%s}", i, data[i].tconst));
-        }
-        sb.append("]");
-        return sb.toString();
+        return emptied;
     }
 }
