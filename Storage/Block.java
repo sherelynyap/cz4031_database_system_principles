@@ -27,6 +27,7 @@ public class Block {
     //Visibility: Package
     int insertRecord(Record newRecord) throws Exception{
         int offset = -1;
+        
         for (int i = 0; i < records.length; i++){
             if (records[i] == null){
                 records[i] = newRecord;

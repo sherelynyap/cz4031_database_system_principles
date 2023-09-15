@@ -71,7 +71,7 @@ public class Main implements Config {
 
     public void doBlockCreation() throws Exception {
         disk = new Disk();
-        //BpTree = new BPTree(blkSize);
+        BpTree = new BPTree(blkSize);
         List<Record> data = doRecordReading(DATA_FILE_PATH);
 
         System.out.println();
@@ -80,7 +80,7 @@ public class Main implements Config {
         Address dataAddr;
         for (Record d : data) {
             dataAddr = disk.insertRecord(d);
-            //BpTree.doBPTreeInsertion(d.FG_PCT_home, dataAddr);
+            BpTree.doBPTreeInsertion(d.FG_PCT_home, dataAddr);
         }
         System.out.println("Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
         System.out.println();
