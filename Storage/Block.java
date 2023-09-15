@@ -24,39 +24,34 @@ public class Block {
         return this.records;
     }
 
-    public int insertRecord(Record newRecord) {
+    //Visibility: Package
+    int insertRecord(Record newRecord) throws Exception{
         int offset = -1;
-        try {
-            if (!isFull()) {
-                // we can add a record
-                for(int i = 0; i < records.length; i++){
-                    if(records[i] == null){
-                        records[i] = newRecord;
-                        recordCount++;
-                        offset = i;
-                        break;
-                    }
-                }
-            } else {
-                //throw error here??
+        for (int i = 0; i < records.length; i++){
+            if (records[i] == null){
+                records[i] = newRecord;
+                recordCount++;
+                offset = i;
+                break;
             }
-        } catch (Error e) {
-            System.out.println("Inserting Record Unsuccessful: " + e.getMessage());
         }
+
+        if (offset == -1){
+            throw new Exception("Insertion failed");
+        }
+
         return offset;
     }
 
-    public boolean deleteRecordAt(int offset){
-        // can simplify?
-        //try catch
-        boolean emptied = false;
+    //Visibility: Package
+    //Return True if the block is emptied
+    boolean deleteRecordAt(int offset) throws Exception{
         if (records[offset] != null){
             records[offset] = null;
             recordCount--;
-            if (recordCount == 0) {
-                emptied = true;
-            }
+            return recordCount == 0;
+        } else {
+            throw new Exception("Deletion failed");
         }
-        return emptied;
     }
 }

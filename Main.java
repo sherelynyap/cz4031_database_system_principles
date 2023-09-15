@@ -5,9 +5,9 @@ import BPlusTree.BPTree;
 import BruteForceLinearScan.LinearScan;
 import Storage.Disk;
 import Storage.Address;
+import Storage.Block;
 import Storage.Record;
 
-//imports for buffer reader
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +16,7 @@ import java.io.IOException;
 
 import Config.Config;
 
-
+// why use interfaces??? wrong!
 public class Main implements Config {
     private Disk disk;
     private BPTree BpTree;
@@ -36,7 +36,7 @@ public class Main implements Config {
         return result;
     }
 
-    public static List<Record> doRecordReading(String directory) {
+    public static List<Record> doRecordReading(String directory) throws Exception {
         File dataFile = new File(directory);
         System.out.println("Reading records from " + directory + " ...");
 
@@ -51,12 +51,12 @@ public class Main implements Config {
             fields = line.split("\\t");
             String GAME_DATE_EST = parseDate(fields[0]);
             int TEAM_ID_home = Integer.parseInt(fields[1]);
-            int PTS_home = Integer.parseInt(fields[2]);
-            float FG_PCT_home = Float.parseFloat(fields[3]);
-            float FT_PCT_home = Float.parseFloat(fields[4]);
-            float FG3_PCT_home = Float.parseFloat(fields[5]);
-            int AST_home = Integer.parseInt(fields[6]);
-            int REB_home = Integer.parseInt(fields[7]);
+            int PTS_home = Integer.parseInt(fields[2].isEmpty() ? "0" : fields[2]);
+            float FG_PCT_home = Float.parseFloat(fields[3].isEmpty() ? "0" : fields[3]);
+            float FT_PCT_home = Float.parseFloat(fields[4].isEmpty() ? "0" : fields[4]);
+            float FG3_PCT_home = Float.parseFloat(fields[5].isEmpty() ? "0" : fields[5]);
+            int AST_home = Integer.parseInt(fields[6].isEmpty() ? "0" : fields[6]);
+            int REB_home = Integer.parseInt(fields[7].isEmpty() ? "0" : fields[7]);
             boolean HOME_TEAM_WINS = fields[8] != "0";
 
             Record r = new Record(GAME_DATE_EST, TEAM_ID_home, PTS_home, FG_PCT_home, FT_PCT_home, FG3_PCT_home, AST_home, REB_home, HOME_TEAM_WINS);
@@ -69,8 +69,8 @@ public class Main implements Config {
         return records;
     }
 
-    public void doBlockCreation(int blkSize) throws Exception {
-        disk = new Disk(blkSize);
+    public void doBlockCreation() throws Exception {
+        disk = new Disk();
         //BpTree = new BPTree(blkSize);
         List<Record> data = doRecordReading(DATA_FILE_PATH);
 
@@ -79,7 +79,7 @@ public class Main implements Config {
 
         Address dataAddr;
         for (Record d : data) {
-            dataAddr = disk.doRecordAppend(d);
+            dataAddr = disk.insertRecord(d);
             //BpTree.doBPTreeInsertion(d.FG_PCT_home, dataAddr);
         }
         System.out.println("Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
@@ -88,9 +88,13 @@ public class Main implements Config {
 
     public void runExperiment1() {
         System.out.println("\nRunning Experiment 1...");
-        disk.showDetails();
+        System.out.println("Number of records: " + disk.getRecordCount());
+        System.out.println("Size of a record: " + Record.size);
+        System.out.println("Number of records stored in a block: " + Block.maxRecordCount);
+        System.out.println("Number of blocks for storing the data: " + disk.getBlockCount());
     }
 
+    
     public void runExperiment2() {
         System.out.println("\nRunning Experiment 2...");
         BpTree.showExperiment2();
@@ -205,7 +209,7 @@ public class Main implements Config {
 
             switch (input) {
                 case "1":
-                    doBlockCreation(BLOCK_SIZE_200);
+                    doBlockCreation();
                     break;
                 case "2":
                     System.exit(0);

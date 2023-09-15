@@ -88,6 +88,6 @@ public class LinearScan{
 
         disk.doRecordDeletion(addressList);
         System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
-        System.out.printf("Total no of data block accessed to delete a record (brute-force linear scan method): %d\n", disk.getCurrentBlkAccess());
+        //System.out.printf("Total no of data block accessed to delete a record (brute-force linear scan method): %d\n", disk.getCurrentBlkAccess());
     }
 }
