@@ -1,14 +1,13 @@
 package BPlusTree;
 
 import Storage.Address;
-import Storage.Record;
 
 import java.util.ArrayList;
 
 public class BPTree {
-    // Pointer size is 6 because 64 bits used for addressing -> 2^6 = 64
-    private static final int POINTER_SIZE = 6;
-    // For numVotes
+    // Pointer size is 8B
+    private static final int POINTER_SIZE = 8;
+    // Key size is 4B
     private static final int KEY_SIZE = 4;
     Node root;
     int noOfLevels;
