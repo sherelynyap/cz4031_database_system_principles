@@ -2,93 +2,84 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 import BPlusTree.BPTree;
-import BruteForceLinearScan.LinearScan;
 import Storage.Disk;
 import Storage.Address;
+import Storage.Block;
 import Storage.Record;
 
-//imports for buffer reader
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import Config.Config;
 
-
+// why use interfaces??? wrong!
 public class Main implements Config {
     private Disk disk;
     private BPTree BpTree;
 
-    /**
-     doRecordReading(String directory): reads the given TSV (tab-separated values) dataset file from a given directory
-     and converts each row of data into a Record object.
+    public static String parseDate(String date){
+        String[] dateParts = date.split("/");
+        
+        int day = Integer.parseInt(dateParts[0]);
+        int month = Integer.parseInt(dateParts[1]);
+        int year = Integer.parseInt(dateParts[2]);
+        
+        String formattedDay = String.format("%02d", day);
+        String formattedMonth = String.format("%02d", month);
+        String formattedYear = String.format("%04d", year);
 
-     String [] category stores tconst, AverageRating and NumVotes.
-     When reading the file, the header is ignored with reader.readLine()
-     Each row of data is split into the 3 attributes and combined into a Record object.
-     The resulting Record objects are stored in a List and returned by the method.
-     The method outputs the total number of records loaded.
-     */
-    public static List<Record> doRecordReading(String directory) throws FileNotFoundException {
-        System.out.println("Loading data in " + directory + " ...");
-        File recordFile = new File(directory);
-        if (!recordFile.exists()) {
-            throw new FileNotFoundException("File does not exist, Try to change the path of the tsv file in the Config file.");
-        }
-        System.out.println("Reading data from " + directory + " ...");
+        String result = formattedDay + formattedMonth + formattedYear;
+        return result;
+    }
 
-        String l;
-        String[] category = null;
-        BufferedReader reader = null;
+    public static List<Record> doRecordReading(String directory) throws Exception {
+        File dataFile = new File(directory);
+        System.out.println("Reading records from " + directory + " ...");
+
+        String line;
+        String[] fields = null;
         List<Record> records = new ArrayList<>();
 
-        try {
-            reader = new BufferedReader(new FileReader(recordFile));
-            reader.readLine();
-            while ((l = reader.readLine()) != null) {
-                category = l.split("\\t");
-                Record r = new Record(category[0], Float.parseFloat(category[1]), Integer.parseInt(category[2]));
-                records.add(r);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+        BufferedReader reader = new BufferedReader(new FileReader(dataFile));
+
+        reader.readLine();
+        while ((line = reader.readLine()) != null) {
+            fields = line.split("\\t");
+            String GAME_DATE_EST = parseDate(fields[0]);
+            int TEAM_ID_home = Integer.parseInt(fields[1]);
+            int PTS_home = Integer.parseInt(fields[2].isEmpty() ? "0" : fields[2]);
+            float FG_PCT_home = Float.parseFloat(fields[3].isEmpty() ? "0" : fields[3]);
+            float FT_PCT_home = Float.parseFloat(fields[4].isEmpty() ? "0" : fields[4]);
+            float FG3_PCT_home = Float.parseFloat(fields[5].isEmpty() ? "0" : fields[5]);
+            int AST_home = Integer.parseInt(fields[6].isEmpty() ? "0" : fields[6]);
+            int REB_home = Integer.parseInt(fields[7].isEmpty() ? "0" : fields[7]);
+            boolean HOME_TEAM_WINS = fields[8] != "0";
+
+            Record r = new Record(GAME_DATE_EST, TEAM_ID_home, PTS_home, FG_PCT_home, FT_PCT_home, FG3_PCT_home, AST_home, REB_home, HOME_TEAM_WINS);
+            records.add(r);
         }
+
+        reader.close();
+
         System.out.println("Total number of records loaded: " + records.size());
         return records;
     }
 
-    /**
-     doBlockCreation(int blkSize): Creates a disk and a B+ tree.
-     A disk variable is created to allocate disk space and a BpTree variable is created to create a BPlusTree.
-     It reads data from a tsv file using the doRecordReading(), then inserts the data into the disk
-     using doRecordAppend() and retrieves the addresses of the records.
-     doBPTreeInsertion() is called to insert the records into the B+ tree based on their "numVotes" attribute.
-     */
-    public void doBlockCreation(int blkSize) throws Exception {
-        disk = new Disk(blkSize);
+    public void doBlockCreation() throws Exception {
+        disk = new Disk();
         BpTree = new BPTree(blkSize);
         List<Record> data = doRecordReading(DATA_FILE_PATH);
 
         System.out.println();
-        System.out.println("Running program...");
-        System.out.println("Inserting the data from the tsv file into the disk and creating the B+ Tree...");
+        System.out.println("Inserting the data into the disk and creating the B+ Tree...");
 
         Address dataAddr;
         for (Record d : data) {
-            dataAddr = disk.doRecordAppend(d);
-            BpTree.doBPTreeInsertion(d.getNumVotes(), dataAddr);
+            dataAddr = disk.insertRecord(d);
+            BpTree.doBPTreeInsertion(d.FG_PCT_home, dataAddr);
         }
         System.out.println("Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
         System.out.println();
@@ -96,9 +87,13 @@ public class Main implements Config {
 
     public void runExperiment1() {
         System.out.println("\nRunning Experiment 1...");
-        disk.showDetails();
+        System.out.println("Number of records: " + disk.getRecordCount());
+        System.out.println("Size of a record: " + Record.size);
+        System.out.println("Number of records stored in a block: " + Block.maxRecordCount);
+        System.out.println("Number of blocks for storing the data: " + disk.getBlockCount());
     }
 
+    
     public void runExperiment2() {
         System.out.println("\nRunning Experiment 2...");
         BpTree.showExperiment2();
@@ -213,7 +208,7 @@ public class Main implements Config {
 
             switch (input) {
                 case "1":
-                    doBlockCreation(BLOCK_SIZE_200);
+                    doBlockCreation();
                     break;
                 case "2":
                     System.exit(0);
