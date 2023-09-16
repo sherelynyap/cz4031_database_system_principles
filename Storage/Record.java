@@ -1,7 +1,6 @@
 package Storage;
 
 public class Record {
-    // temp size
     public static final int size = 37;
     public String GAME_DATE_EST;
     public int TEAM_ID_home;
