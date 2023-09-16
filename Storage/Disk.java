@@ -92,4 +92,31 @@ public class Disk {
             }
         }
     }
+
+    public ArrayList<Record> linearScan(float key) {
+        System.out.println("\nBrute-force Linear Scan");
+        System.out.println("------------------------------------------------------------------");
+
+        int blockAccess = 0;
+        ArrayList<Record> recordList = new ArrayList<>();
+
+        for (Block block : blocks) {
+            //Ignore empty blocks
+            if (block.isEmpty()){
+                continue;
+            }
+            blockAccess++;
+            Record[] records = block.getRecords();
+
+            for (Record record : records) {
+                if (record != null && record.FG_PCT_home == key) {
+                    recordList.add(record);
+                }
+            }
+        }
+
+        System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
+
+        return recordList;
+    }
 }

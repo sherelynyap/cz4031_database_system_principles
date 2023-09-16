@@ -12,6 +12,10 @@ public class Block {
         this.records = new Record[maxRecordCount];
     }
 
+    public boolean isEmpty(){
+        return recordCount == 0;
+    }
+    
     public boolean isFull() {
         return recordCount >= maxRecordCount;
     }
