@@ -34,11 +34,11 @@ public class Disk {
         return this.blocks;
     }
 
-    public Record getRecord(Address address) {
+    public Record getRecord(Address address) throws Exception{
         return blocks.get(address.blockID).getRecordAt(address.offset);
     }
 
-    public ArrayList<Record> getRecords(ArrayList<Address> addressList) {
+    public ArrayList<Record> getRecords(ArrayList<Address> addressList) throws Exception{
         ArrayList<Record> recordList = new ArrayList<>();
         
         for (Address address : addressList) {
