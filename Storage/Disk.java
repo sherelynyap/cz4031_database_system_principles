@@ -105,6 +105,7 @@ public class Disk {
             if (block.isEmpty()){
                 continue;
             }
+
             blockAccess++;
             Record[] records = block.getRecords();
 
@@ -118,5 +119,66 @@ public class Disk {
         System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
 
         return recordList;
+    }
+
+    public ArrayList<Record> linearScan(float lowerBound, float upperBound) {
+        System.out.println("\nBrute-force Linear Scan（Range)");
+        System.out.println("------------------------------------------------------------------");
+
+        int blockAccess = 0;
+        ArrayList<Record> recordList = new ArrayList<>();
+
+        for (Block block : blocks) {
+            //Ignore empty blocks
+            if (block.isEmpty()){
+                continue;
+            }
+
+            blockAccess++;
+            Record[] records = block.getRecords();
+
+            for (Record record : records) {
+                if (record != null && record.FG_PCT_home >= lowerBound && record.FG_PCT_home <= upperBound) {
+                    recordList.add(record);
+                }
+            }
+        }
+
+        System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
+
+        return recordList;
+    }
+
+    public void linearScanDeletion(float upperBound) throws Exception{
+        System.out.println("\nBrute-force Linear Scan (Delete)");
+        System.out.println("------------------------------------------------------------------");
+
+        int blockAccess = 0;
+        ArrayList<Address> addressList = new ArrayList<>();
+
+        for (int blockID = 0; blockID < blocks.size(); blockID++) {
+            Block block = blocks.get(blockID);
+            //Ignore empty blocks
+            if (block.isEmpty()){
+                continue;
+            }
+
+            blockAccess++;
+            Record[] records = block.getRecords();
+
+            int count = 0;
+
+            for (Record record : records) {
+                if (record != null && record.FG_PCT_home <= 0.35) {
+                    Address address = new Address(blockID, count);
+                    addressList.add(address);
+                }
+                count++;
+            }
+        }
+
+        deleteRecord(addressList);
+        System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
+        //System.out.printf("Total no of data block accessed to delete a record (brute-force linear scan method): %d\n", disk.getCurrentBlkAccess());
     }
 }
