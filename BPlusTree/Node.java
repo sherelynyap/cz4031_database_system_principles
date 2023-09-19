@@ -6,7 +6,7 @@ import java.util.Collections;
 public class Node {
     // Refactored
     private InternalNode internalNode;
-    private ArrayList<Integer> keysSet;
+    private ArrayList<Float> keysSet;
     private boolean isRoot;
     private boolean isLeaf;
 
@@ -24,11 +24,11 @@ public class Node {
         this.internalNode = updateInternalNode;
     }
 
-    public ArrayList<Integer> getKeys() {
+    public ArrayList<Float> getKeys() {
         return this.keysSet;
     }
 
-    public int getKey(int targetIndex) {
+    public float getKey(int targetIndex) {
         return keysSet.get(targetIndex);
     }
 
@@ -46,7 +46,7 @@ public class Node {
      * If the key is equal to the middle element:
      * the index of the first occurrence of the key is recorded
      */
-    public int setKey(int newKey) {
+    public int setKey(float newKey) {
         int keysSize = keysSet.size();
         int targetIndex = 0;
         if (keysSize == 0) {
@@ -61,7 +61,7 @@ public class Node {
 
             while (lowPtr <= highPtr) {
                 int midPtr = findMid(lowPtr, highPtr);
-                int valMid = keysSet.get(midPtr);
+                float valMid = keysSet.get(midPtr);
 
                 if (valMid > newKey) {
                     highPtr = midPtr - 1;
@@ -126,8 +126,8 @@ public class Node {
      * the first key of the left-most child of the current node and returns it as
      * the smallest key.
      */
-    public int doSmallestKeyRetrieval() {
-        int minKey;
+    public float doSmallestKeyRetrieval() {
+        float minKey;
         InternalNode temp;
         int firstIndex = 0;
         if (isLeaf == true) {

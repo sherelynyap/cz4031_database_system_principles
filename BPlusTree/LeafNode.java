@@ -41,7 +41,7 @@ public class LeafNode extends Node {
      * node.
      * Returns the index at which the key was inserted.
      */
-    public int setAddress(int targetKey, Address targetAddress) {
+    public int setAddress(float targetKey, Address targetAddress) {
         int addressSetSize = this.getAddresses().size();
         int targetIndex = 0;
         if (addressSetSize == 0) {
