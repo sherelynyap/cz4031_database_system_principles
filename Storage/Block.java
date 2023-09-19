@@ -20,7 +20,10 @@ public class Block {
         return recordCount >= maxRecordCount;
     }
 
-    public Record getRecordAt(int offset){
+    public Record getRecordAt(int offset) throws Exception{
+        if (records[offset] == null){
+            throw new Exception("Invalid address");
+        }
         return records[offset];
     }
 
