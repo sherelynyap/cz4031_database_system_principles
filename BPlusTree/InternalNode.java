@@ -46,8 +46,8 @@ public class InternalNode extends Node {
             newChild.setInternalNode(this);
             // return targetPos;
         } else {
-            int minChildKey = newChild.doSmallestKeyRetrieval();
-            int minParentKey = doSmallestKeyRetrieval();
+            float minChildKey = newChild.doSmallestKeyRetrieval();
+            float minParentKey = doSmallestKeyRetrieval();
 
             if (minParentKey > minChildKey) {
                 this.setKey(minParentKey);
@@ -84,7 +84,7 @@ public class InternalNode extends Node {
         doKeysDeletion();
         // add the new child's key and together with the rest of the keys
         int childNodesSetSize = childNodesSet.size();
-        int targetKeyIndex = -1;
+        float targetKeyIndex = -1;
         for (int ptr = 1; ptr < childNodesSetSize; ptr++) {
             targetKeyIndex = childNodesSet.get(ptr).doSmallestKeyRetrieval();
             // setKey(childNodesSet.get(ptr).doSmallestKeyRetrieval());
@@ -123,7 +123,7 @@ public class InternalNode extends Node {
         this.doKeysDeletion();
 
         int childNodesSetSize = childNodesSet.size();
-        int targetKeyIndex = -1;
+        float targetKeyIndex = -1;
         for (int ptr = 1; ptr < childNodesSetSize; ptr++) {
             targetKeyIndex = childNodesSet.get(ptr).doSmallestKeyRetrieval();
             setKey(targetKeyIndex);
