@@ -3,6 +3,7 @@ package BPlusTree;
 import Storage.Address;
 
 import java.util.ArrayList;
+import java.lang.Float;
 
 public class BPTree {
     // Pointer size is 8B
@@ -23,12 +24,14 @@ public class BPTree {
         minNoOfInternalKeys = (int) Math.floor(maxNoOfKeys / 2);
         minNoOfLeafKeys = (int) Math.floor((maxNoOfKeys + 1) / 2);
 
-        root = createRoot();
+        root = new LeafNode();
+        noOfLevels = 1;
+        noOfNodes = 1;
+        root.setIsRootNode(true);
+
         noOfNodes = 0;
         noOfNodesDeleted = 0;
 
-        System.out.println();
-        System.out.println("Doing Calculations...");
         System.out.println("Block Size: " + sizeOfBlock + "B");
         System.out.println("Max no. of keys in a node: " + maxNoOfKeys);
         System.out.println("Min no. of keys in an internal node: " + minNoOfInternalKeys);
@@ -36,43 +39,32 @@ public class BPTree {
         System.out.println();
     }
 
-    /**
-     createRoot(): create initial root
-     */
-    public LeafNode createRoot() {
-        LeafNode initRoot = new LeafNode();
-        noOfLevels = 1;
-        noOfNodes = 1;
-        initRoot.setIsRootNode(true);
-        return initRoot;
-    }
-
-    public void doBPTreeInsertion(int key, Address address) {
+    public void doBPTreeInsertion(float key, Address address) {
         this.doLeafNodeInsertion(this.doLeafNodeSearch(key), key, address);
     }
 
     /**
-    doLeafNodeSearch(int key): Search for a leaf node in a B+ tree that contains a specific key.
+    doLeafNodeSearch(float key): Search for a leaf node in a B+ tree that contains a specific key.
 
     Check if root node is a leaf node.
-    If it is a leaf node:
-        Returns the root node as a LeafNode object.
-    If it is not a leaf node:
-        Retrieves the keys and child nodes of the root's internal node.
+        If it is a leaf node:
+            Returns the root node as a LeafNode object.
+        If it is not a leaf node:
+            Retrieves the keys and child nodes of the root's internal node.
 
     Iterates through the keys in the internal node to find the index of the child node that should contain the input key.
     It retrieves the child node at that index and checks if it is a leaf node.
     If it is a leaf node:
         Return the child node as a leaf node.
     If it is not a leaf node:
-        Calls the recursive function doLeafNodeSearch(InternalNode internalNode, int key) until it finds a leaf node
+        Calls the recursive function doLeafNodeSearch(InternalNode internalNode, float key) until it finds a leaf node
         containing the input key.
     */
-    public LeafNode doLeafNodeSearch(int key) {
+    public LeafNode doLeafNodeSearch(float key) {
         if (this.root.getIsLeafNode())
             return (LeafNode) root;
 
-        ArrayList<Integer> keys;
+        ArrayList<Float> keys;
         InternalNode internalNode = (InternalNode) root;
 
         keys = internalNode.getKeys();
@@ -96,7 +88,7 @@ public class BPTree {
     }
 
     /**
-     doLeafNodeSearch(InternalNode internalNode, int key): Recursive method that searches for a leaf node in the
+     doLeafNodeSearch(InternalNode internalNode, float key): Recursive method that searches for a leaf node in the
      B+ tree that corresponds to a given key.
 
      Retrieves the keys of the internal node and iterates over them to find the index of the child node that may
@@ -107,8 +99,8 @@ public class BPTree {
          Recursively calls itself with the child node as the new InternalNode parameter, and continues the search
         for the leaf node corresponding to the given key.
      */
-    public LeafNode doLeafNodeSearch(InternalNode internalNode, int key) {
-        ArrayList<Integer> keys = internalNode.getKeys();
+    public LeafNode doLeafNodeSearch(InternalNode internalNode, float key) {
+        ArrayList<Float> keys = internalNode.getKeys();
         int i;
 
         for (i = 0; i < keys.size(); i++) {
@@ -127,18 +119,18 @@ public class BPTree {
     }
 
     /**
-    doLeafNodeInsertion(LeafNode leafNode, int key, Address address): Insert a new key-value pair into a leaf node in a B+ tree.
+    doLeafNodeInsertion(LeafNode leafNode, float key, Address address): Insert a new key-value pair into a leaf node in a B+ tree.
 
     Checks if the leaf node is already full aka max keys allowed
     If full:
-        Calls the doLeafNodeSeparation method to split the node into two and reorganize the tree structure.
+        Calls the splitLeafNode method to split the node into two and reorganize the tree structure.
     If not full:
         Adds the new key-value pair to the leaf node
     */
-    public void doLeafNodeInsertion(LeafNode leafNode, int key, Address address) {
+    public void doLeafNodeInsertion(LeafNode leafNode, float key, Address address) {
         try {
             if (leafNode.getKeys().size() >= maxNoOfKeys) {
-                doLeafNodeSeparation(leafNode, key, address);
+                splitLeafNode(leafNode, key, address);
             } else {
                 leafNode.setAddress(key, address);
             }
@@ -149,7 +141,7 @@ public class BPTree {
     }
 
     /**
-    doLeafNodeSeparation(LeafNode prevLeaf, int key, Address address): split the node into two and reorganize the tree.
+    splitLeafNode(LeafNode prevLeaf, float key, Address address): split the node into two and reorganize the tree.
 
     Description:
     When a leaf node reaches the maximum number of keys, it needs to be split into two separate leaf nodes.
@@ -183,10 +175,10 @@ public class BPTree {
                 to create a new parent node (split similarly to the leaf node)
         8) noOfNodes is incremented to reflect the addition of the new nodes.
      */
-    public void doLeafNodeSeparation(LeafNode prevLeaf, int key, Address address) {
+    public void splitLeafNode(LeafNode prevLeaf, float key, Address address) {
         // (1)
         Address addresses[] = new Address[maxNoOfKeys + 1];
-        int keys[] = new int[maxNoOfKeys + 1];
+        float keys[] = new float[maxNoOfKeys + 1];
         LeafNode newLeaf = new LeafNode();
 
         // (2)
@@ -199,13 +191,13 @@ public class BPTree {
         // (3)
         for (i = maxNoOfKeys - 1; i >= 0; i--) {
 
-            if (keys[i] <= key) {
+            if (Float.compare(keys[i], key) <= 0) {
                 i++;
                 keys[i] = key;
                 addresses[i] = address;
                 break;
             }
-
+            // shift keys to the right
             keys[i + 1] = keys[i];
             addresses[i + 1] = addresses[i];
         }
@@ -283,8 +275,8 @@ public class BPTree {
 
         // (1)
         Node childNodes[] = new Node[maxNoOfKeys + 2];
-        int keys[] = new int[maxNoOfKeys + 2];
-        int key = childNode.doSmallestKeyRetrieval();
+        float keys[] = new float[maxNoOfKeys + 2];
+        float key = childNode.doSmallestKeyRetrieval();
         InternalNode parentNode2 = new InternalNode();
         parentNode2.setIsRootNode(false);
 
@@ -296,7 +288,7 @@ public class BPTree {
 
         // (3)
         for (int i = maxNoOfKeys; i >= 0; i--) {
-            if (keys[i] <= key) {
+            if (Float.compare(keys[i], key) <= 0) {
                 i++;
                 keys[i] = key;
                 childNodes[i] = childNode;
@@ -337,7 +329,7 @@ public class BPTree {
     }
 
     /**
-     doKeyRemoval(int key): Remove key from the leaf node
+     doKeyRemoval(float key): Remove key from the leaf node
      Steps Taken:
         1) Initialize a keys array list, a leaf node and an addressList array list
         2) Calls doRecordsWithKeysRetrieval() to retrieve the addresses of the records with the given key value to be deleted.
@@ -354,9 +346,9 @@ public class BPTree {
         5) Number of nodes deleted during the leaf cleaning operation is subtracted from the total number of nodes.
         6) Returns the list of addresses associated with the removed key.
      */
-    public ArrayList<Address> doKeyRemoval(int key) {
+    public ArrayList<Address> doKeyRemoval(float key) {
         // (1)
-        ArrayList<Integer> keys;
+        ArrayList<Float> keys;
         LeafNode leafNode;
         ArrayList<Address> addressList = new ArrayList<>();
 
@@ -371,7 +363,7 @@ public class BPTree {
             leafNode = doLeafNodeSearch(key);
             keys = leafNode.getKeys();
             for (int i = 0; i < keys.size(); i++) {
-                if (keys.get(i) == key) {
+                if (Float.compare(keys.get(i), key) == 0) {
                     leafNode.deleteAddress(i);
                     if (!leafNode.getIsRootNode()) {
                         doLeafCleaning(leafNode);
@@ -591,12 +583,12 @@ public class BPTree {
         System.out.println(rootDuplicate.getKeys().toString());
     }
 
-    public ArrayList<Address> showExperiment3(int searchingKey) {
+    public ArrayList<Address> showExperiment3(float searchingKey) {
         return doRecordsWithKeysRetrieval(searchingKey, true);
     }
 
     /**
-     doRecordsWithKeysRetrieval(int searchingKey, boolean isPrint): Search for records with a specific key.
+     doRecordsWithKeysRetrieval(float searchingKey, boolean isPrint): Search for records with a specific key.
      searchingKey -> the key to be searched
      isPrint -> to determine whether to print out the search results or not.
 
@@ -631,7 +623,7 @@ public class BPTree {
     Prints search results if the "isPrint" == true.
     Returns result array list containing the addresses of all records with the same key.
     */
-     private ArrayList<Address> doRecordsWithKeysRetrieval(int searchingKey, boolean isPrint) {
+     private ArrayList<Address> doRecordsWithKeysRetrieval(float searchingKey, boolean isPrint) {
         ArrayList<Address> result = new ArrayList<>();
         int blockAccess = 1;
         int siblingAccess = 0;
@@ -642,7 +634,7 @@ public class BPTree {
         while (!currNode.getIsLeafNode()) {
             internalNode = (InternalNode) currNode;
             for (int i = 0; i < internalNode.getKeys().size(); i++) {
-                if (searchingKey <= internalNode.getKey(i)) {
+                if (Float.compare(searchingKey, internalNode.getKey(i)) <= 0) {
                     currNode = internalNode.getChildNode(i);
                     blockAccess++;
                     break;
@@ -660,7 +652,7 @@ public class BPTree {
         // compare the keys in the leaf node and the searching key
         while (!finish && curr != null) {
             for (int i = 0; i < curr.getKeys().size(); i++) {
-                if (curr.getKey(i) == searchingKey) {
+                if (Float.compare(curr.getKey(i), searchingKey) == 0) {
                     result.add(curr.getAddress(i));
                     continue;
                 }
@@ -694,7 +686,7 @@ public class BPTree {
     }
 
     /**
-     doRangeRecordsRetrieval(int low, int high): Range query method on a B-tree.
+     doRangeRecordsRetrieval(float low, float high): Range query method on a B-tree.
      It retrieves all addresses stored in the tree that have a key within a specified range.
 
      Initializing a result array list that will hold the addresses that satisfy the query.
@@ -714,7 +706,7 @@ public class BPTree {
      Returns the result array list containing the addresses that meet the query criteria.
     */
      // Code for Experiment 4
-    public ArrayList<Address> doRangeRecordsRetrieval1(int low, int high) {
+    public ArrayList<Address> doRangeRecordsRetrieval1(float low, float high) {
         ArrayList<Address> result = new ArrayList<>();
         int blockAccess = 1;
 
@@ -726,7 +718,7 @@ public class BPTree {
             internalNode = (InternalNode) curr;
             int no_of_keys = internalNode.getKeys().size();
             for (int i = 0; i < no_of_keys; i++) {
-                if (low <= internalNode.getKey(i)) {
+                if (Float.compare(low, internalNode.getKey(i)) <= 0) {
                     curr = internalNode.getChildNode(i);
                     blockAccess++;
                     break;
@@ -748,7 +740,7 @@ public class BPTree {
         while (!found && curLeaf != null) {
             for (int i = 0; i < curLeaf.getKeys().size(); i++) {
                 // found same key, add into result list
-                if (curLeaf.getKey(i) >= low && curLeaf.getKey(i) <= high) {
+                if (Float.compare(curLeaf.getKey(i), low) >= 0 && Float.compare(curLeaf.getKey(i), high) <= 0) {
                     result.add(curLeaf.getAddress(i));
                     continue;
                 }
