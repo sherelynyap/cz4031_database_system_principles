@@ -38,7 +38,7 @@ public class InternalNode extends Node {
      * return the position where the
      * child node was inserted.
      */
-    public int doChildInsertion(Node newChild) {
+    public int insertChild(Node newChild) {
         int targetPos = 0;
         int childNodesSetSize = childNodesSet.size();
         if (childNodesSetSize == 0) {
@@ -46,8 +46,8 @@ public class InternalNode extends Node {
             newChild.setInternalNode(this);
             // return targetPos;
         } else {
-            float minChildKey = newChild.doSmallestKeyRetrieval();
-            float minParentKey = doSmallestKeyRetrieval();
+            float minChildKey = newChild.retrieveSmallestKey();
+            float minParentKey = retrieveSmallestKey();
 
             if (minParentKey > minChildKey) {
                 this.setKey(minParentKey);
@@ -81,27 +81,27 @@ public class InternalNode extends Node {
     public void insertChildToFront(Node newChild) {
         childNodesSet.add(0, newChild);
         newChild.setInternalNode(this);
-        doKeysDeletion();
+        deleteAllKeys();
         // add the new child's key and together with the rest of the keys
         int childNodesSetSize = childNodesSet.size();
         float targetKeyIndex = -1;
         for (int ptr = 1; ptr < childNodesSetSize; ptr++) {
-            targetKeyIndex = childNodesSet.get(ptr).doSmallestKeyRetrieval();
+            targetKeyIndex = childNodesSet.get(ptr).retrieveSmallestKey();
             // setKey(childNodesSet.get(ptr).doSmallestKeyRetrieval());
             setKey(targetKeyIndex);
         }
     }
 
     public void doSeparation() {
-        doKeysDeletion();
-        doResetChild();
+        deleteAllKeys();
+        resetChild();
     }
 
-    public void doAllChildNodesDeletion() {
-        doResetChild();
+    public void deleteAllChildNodes() {
+        resetChild();
     }
 
-    public void doResetChild() {
+    public void resetChild() {
         this.childNodesSet = new ArrayList<Node>();
     }
 
@@ -118,14 +118,14 @@ public class InternalNode extends Node {
      * child node by
      * updating the key values of the remaining child nodes.
      */
-    public void doChildNodeDeletion(Node targetChild) {
+    public void deleteChildNode(Node targetChild) {
         childNodesSet.remove(targetChild);
-        this.doKeysDeletion();
+        this.deleteAllKeys();
 
         int childNodesSetSize = childNodesSet.size();
         float targetKeyIndex = -1;
         for (int ptr = 1; ptr < childNodesSetSize; ptr++) {
-            targetKeyIndex = childNodesSet.get(ptr).doSmallestKeyRetrieval();
+            targetKeyIndex = childNodesSet.get(ptr).retrieveSmallestKey();
             setKey(targetKeyIndex);
         }
     }

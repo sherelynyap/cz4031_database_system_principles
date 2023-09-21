@@ -141,12 +141,12 @@ public class BPTree {
             InternalNode newRoot = new InternalNode();
             prevLeaf.setIsRootNode(false);
             newRoot.setIsRootNode(true); // New node become the root node
-            newRoot.doChildInsertion(prevLeaf); //Add left child
-            newRoot.doChildInsertion(newLeaf); //Add right child
+            newRoot.insertChild(prevLeaf); // Add left child
+            newRoot.insertChild(newLeaf); // Add right child
             root = newRoot;
             numLevels++;
         } else if (prevLeaf.getInternalNode().getKeys().size() < maxKeys) {
-            prevLeaf.getInternalNode().doChildInsertion(newLeaf);
+            prevLeaf.getInternalNode().insertChild(newLeaf);
         } else {
             separateParentNode(prevLeaf.getInternalNode(), newLeaf);
         }
@@ -164,14 +164,14 @@ public class BPTree {
         
         Node childNodes[] = new Node[maxKeys + 2];
         float keys[] = new float[maxKeys + 2];
-        float key = childNode.doSmallestKeyRetrieval();
+        float key = childNode.retrieveSmallestKey();
         InternalNode parentNode2 = new InternalNode();
         parentNode2.setIsRootNode(false);
 
         
         for (int i = 0; i < maxKeys + 1; i++) {
             childNodes[i] = parentNode.getChildNode(i);
-            keys[i] = childNodes[i].doSmallestKeyRetrieval();
+            keys[i] = childNodes[i].retrieveSmallestKey();
         }
 
         
@@ -192,9 +192,9 @@ public class BPTree {
 
         
         for (int i = 0; i < minInternalKeys + 2; i++)
-            parentNode.doChildInsertion(childNodes[i]);
+            parentNode.insertChild(childNodes[i]);
         for (int i = minInternalKeys + 2; i < maxKeys + 2; i++)
-            parentNode2.doChildInsertion(childNodes[i]);
+            parentNode2.insertChild(childNodes[i]);
 
         
         if (parentNode.getIsRootNode()) {
@@ -202,12 +202,12 @@ public class BPTree {
             InternalNode newRoot = new InternalNode();
             parentNode.setIsRootNode(false);
             newRoot.setIsRootNode(true);
-            newRoot.doChildInsertion(parentNode);
-            newRoot.doChildInsertion(parentNode2);
+            newRoot.insertChild(parentNode);
+            newRoot.insertChild(parentNode2);
             root = newRoot;
             numLevels++;
         } else if (parentNode.getInternalNode().getKeys().size() < maxKeys) {
-            parentNode.getInternalNode().doChildInsertion(parentNode2);
+            parentNode.getInternalNode().insertChild(parentNode2);
         } else {
             separateParentNode(parentNode.getInternalNode(), parentNode2);
         }
@@ -347,14 +347,13 @@ public class BPTree {
 
             if (left == null) {
                 if (!copy.getIsRootNode()) {
-                    left = searchLeafNode(copy.doSmallestKeyRetrieval() - 1);
+                    left = searchLeafNode(copy.retrieveSmallestKey() - 1);
                 }
             }
 
             left.setNextNode(leafNode.getNextNode());
 
-
-            leafNode.doNodeDeletion();
+            leafNode.deleteNode();
             numDeletedNodes++;
         }
 
@@ -380,7 +379,7 @@ public class BPTree {
             borrow the required number of keys from the left or right sibling node and updates the parent's keys.
         If there are not enough excess keys:
             Merge the node with its left or right sibling node and updates the parent's keys accordingly.
-            After merging, delete the node and remove parent node by calling doNodeDeletion().
+            After merging, delete the node and remove parent node by calling deleteNode().
             Increment numDeletedNodes.
 
     The function recursively calls itself with the parent node that was duplicated during the cleaning operation to
@@ -391,13 +390,13 @@ public class BPTree {
 
             if (parent.getChildNodes().size() > 1) {
                 Node child = parent.getChildNode(0);
-                parent.doChildNodeDeletion(child);
-                parent.doChildInsertion(child);
+                parent.deleteChildNode(child);
+                parent.insertChild(child);
                 return;
             } else {
                 root = parent.getChildNode(0);
                 parent.getChildNode(0).setIsRootNode(true);
-                parent.doNodeDeletion();
+                parent.deleteNode();
                 numDeletedNodes++;
                 numLevels--;
                 return;
@@ -422,13 +421,14 @@ public class BPTree {
             if (leftSiblingNode != null) {
                 for (int i = 0; i < required; i++) {
                     parent.insertChildToFront(leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
-                    leftSiblingNode.doChildNodeDeletion(leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
+                    leftSiblingNode.deleteChildNode(
+                            leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
                 }
 
             } else {
                 for (int i = 0; i < required; i++) {
-                    parent.doChildInsertion(rightSiblingNode.getChildNode(0));
-                    rightSiblingNode.doChildNodeDeletion(rightSiblingNode.getChildNode(0));
+                    parent.insertChild(rightSiblingNode.getChildNode(0));
+                    rightSiblingNode.deleteChildNode(rightSiblingNode.getChildNode(0));
                 }
             }
             duplicate = parent.getInternalNode();
@@ -438,27 +438,26 @@ public class BPTree {
             // If there is vacancy for right node
             if (leftSiblingNode == null) {
                 for (int i = 0; i < parent.getChildNodes().size(); i++) {
-                    rightSiblingNode.doChildInsertion(parent.getChildNode(i));
+                    rightSiblingNode.insertChild(parent.getChildNode(i));
                 }
             }
 
             // If there is vacancy for left node
             else {
                 for (int i = 0; i < parent.getChildNodes().size(); i++) {
-                    leftSiblingNode.doChildInsertion(parent.getChildNode(i));
+                    leftSiblingNode.insertChild(parent.getChildNode(i));
                 }
             }
 
             // After merging, we delete the node
             duplicate = parent.getInternalNode();
 
-            //removes the parent node
-            parent.doNodeDeletion();
+            // removes the parent node
+            parent.deleteNode();
             numDeletedNodes++;
         }
         doParentNodeCleaning(duplicate);
     }
-
 
     // Code for Experiment 2
     public void showExperiment2() {
@@ -467,7 +466,7 @@ public class BPTree {
         System.out.println("The No of nodes of the B+ tree: " + this.numNodes);
         System.out.println("The No of levels of the B+ tree: " + this.numLevels);
         System.out.println("The content of the root node (only the keys): ");
-        InternalNode rootDuplicate = (InternalNode) root; //to get the root node
+        InternalNode rootDuplicate = (InternalNode) root; // to get the root node
         System.out.println(rootDuplicate.getKeys().toString());
     }
 
@@ -476,42 +475,54 @@ public class BPTree {
     }
 
     /**
-     doRecordsWithKeysRetrieval(float searchingKey, boolean isPrint): Search for records with a specific key.
-     searchingKey -> the key to be searched
-     isPrint -> to determine whether to print out the search results or not.
-
-    Initializes an ArrayList called "result" to store the matching addresses found during the search,
-    and another ArrayList called "recordsAddressList" to store the addresses of all records accessed during the search.
-    Sets blockAccess to 1, indicating that the root node has been accessed.
-    Sets siblingAccess to 0, which will be used later to count the number of sibling nodes accessed during the search.
-    currNode is set to root and an internal node is initialized.
-
-    In the while loop:
-        Search for the leaf node containing the specified key by traversing the B+ tree until a leaf node is found.
-        Checks whether the current node is an internal node or a leaf node.
-        If it is an internal node:
-            Casts the current node to an InternalNode object and iterates over its keys to determine which child node
-            to access next.
-            If the searching key is less than or equal to the current key:
-                Access the child node at the current index and increments blockAccess.
-            If the searching key is greater than all keys in the internal node (i.e. look at right child node):
-                Accesses the last child node in the list and increments blockAccess.
-
-    Once the leaf node containing the searching key is found, iterates over its keys to find all records with the same key.
-    If a match is found (curr.getKey(i) == searchingKey):
-        Add the corresponding address to the result array list.
-    If the current key is greater than the searching key:
-        Stop search, set finish = true and break out of loop.
-    If there are no more records with the same key in the current leaf node (!finish):
-        check whether there are any remaining records of same key in the next sibling node.
-    If yes:
-        Set the current node to the next sibling node and repeats the search process
-        Continues until all sibling nodes have been searched or there are no more records with the same key.
-
-    Prints search results if the "isPrint" == true.
-    Returns result array list containing the addresses of all records with the same key.
-    */
-     private ArrayList<Address> doRecordsWithKeysRetrieval(float searchingKey, boolean isPrint) {
+     * doRecordsWithKeysRetrieval(float searchingKey, boolean isPrint): Search for
+     * records with a specific key.
+     * searchingKey -> the key to be searched
+     * isPrint -> to determine whether to print out the search results or not.
+     * 
+     * Initializes an ArrayList called "result" to store the matching addresses
+     * found during the search,
+     * and another ArrayList called "recordsAddressList" to store the addresses of
+     * all records accessed during the search.
+     * Sets blockAccess to 1, indicating that the root node has been accessed.
+     * Sets siblingAccess to 0, which will be used later to count the number of
+     * sibling nodes accessed during the search.
+     * currNode is set to root and an internal node is initialized.
+     * 
+     * In the while loop:
+     * Search for the leaf node containing the specified key by traversing the B+
+     * tree until a leaf node is found.
+     * Checks whether the current node is an internal node or a leaf node.
+     * If it is an internal node:
+     * Casts the current node to an InternalNode object and iterates over its keys
+     * to determine which child node
+     * to access next.
+     * If the searching key is less than or equal to the current key:
+     * Access the child node at the current index and increments blockAccess.
+     * If the searching key is greater than all keys in the internal node (i.e. look
+     * at right child node):
+     * Accesses the last child node in the list and increments blockAccess.
+     * 
+     * Once the leaf node containing the searching key is found, iterates over its
+     * keys to find all records with the same key.
+     * If a match is found (curr.getKey(i) == searchingKey):
+     * Add the corresponding address to the result array list.
+     * If the current key is greater than the searching key:
+     * Stop search, set finish = true and break out of loop.
+     * If there are no more records with the same key in the current leaf node
+     * (!finish):
+     * check whether there are any remaining records of same key in the next sibling
+     * node.
+     * If yes:
+     * Set the current node to the next sibling node and repeats the search process
+     * Continues until all sibling nodes have been searched or there are no more
+     * records with the same key.
+     * 
+     * Prints search results if the "isPrint" == true.
+     * Returns result array list containing the addresses of all records with the
+     * same key.
+     */
+    private ArrayList<Address> doRecordsWithKeysRetrieval(float searchingKey, boolean isPrint) {
         ArrayList<Address> result = new ArrayList<>();
         int blockAccess = 1;
         int siblingAccess = 0;
@@ -569,82 +580,91 @@ public class BPTree {
             System.out.printf("Total no of data block accesses: %d\n", result.size() + blockAccess);
         }
 
-
         return result;
     }
 
     /**
-     doRangeRecordsRetrieval(float low, float high): Range query method on a B-tree.
-     It retrieves all addresses stored in the tree that have a key within a specified range.
+     * doRangeRecordsRetrieval(float low, float high): Range query method on a
+     * B-tree.
+     * It retrieves all addresses stored in the tree that have a key within a
+     * specified range.
+     * 
+     * Initializing a result array list that will hold the addresses that satisfy
+     * the query.
+     * Set the node count and sibling count to 1 and 0, respectively, and assigns
+     * the root node to the variable "curr".
+     * In the while loop:
+     * Traverse down the tree from the root node until it reaches a leaf node.
+     * During the traversal, it checks each internal node's keys to determine which
+     * child node to move to next based
+     * on the range being queried. It also increments the blockAccess for each node
+     * visited.
+     * If leaf node is found:
+     * Loops through its keys to check which addresses fall within the specified
+     * range.
+     * If a matching address is found:
+     * Add to result array list.
+     * If the key exceeds the specified range:
+     * Exit loop.
+     * 
+     * Also checks sibling nodes for remaining records that meet the query criteria.
+     * Returns the result array list containing the addresses that meet the query
+     * criteria.
+     */
+    // Code for Experiment 4
+    public ArrayList<Address> doRangeRecordsRetrieval1(float lowBound, float highBound) {
+        ArrayList<Address> addressResult = new ArrayList<>();
+        int totalBlockAccessed = 1;
+        InternalNode tempIntNode;
+        Node thisNode = root;
 
-     Initializing a result array list that will hold the addresses that satisfy the query.
-     Set the node count and sibling count to 1 and 0, respectively, and assigns the root node to the variable "curr".
-     In the while loop:
-        Traverse down the tree from the root node until it reaches a leaf node.
-        During the traversal, it checks each internal node's keys to determine which child node to move to next based
-        on the range being queried. It also increments the blockAccess for each node visited.
-     If leaf node is found:
-        Loops through its keys to check which addresses fall within the specified range.
-        If a matching address is found:
-            Add to result array list.
-        If the key exceeds the specified range:
-            Exit loop.
-
-     Also checks sibling nodes for remaining records that meet the query criteria.
-     Returns the result array list containing the addresses that meet the query criteria.
-    */
-     // Code for Experiment 4
-    public ArrayList<Address> doRangeRecordsRetrieval1(float low, float high) {
-        ArrayList<Address> result = new ArrayList<>();
-        int blockAccess = 1;
-
-        Node curr = root;
-        InternalNode internalNode;
-
-
-        while (!curr.getIsLeafNode()) {
-            internalNode = (InternalNode) curr;
-            int no_of_keys = internalNode.getKeys().size();
-            for (int i = 0; i < no_of_keys; i++) {
-                if (Float.compare(low, internalNode.getKey(i)) <= 0) {
-                    curr = internalNode.getChildNode(i);
-                    blockAccess++;
+        while (thisNode.getIsLeafNode() == false) {
+            tempIntNode = (InternalNode) thisNode;
+            int numKeys = tempIntNode.getKeys().size();
+            int lastIndex = numKeys - 1;
+            for (int ptr = 0; ptr < numKeys; ptr++) {
+                if (tempIntNode.getKey(ptr) >= lowBound) {
+                    // If Key >= lowBound, get this child and break
+                    totalBlockAccessed += 1;
+                    thisNode = tempIntNode.getChildNode(ptr);
                     break;
                 }
 
-                if (i == no_of_keys - 1) {
-
-                    curr = internalNode.getChildNode(i + 1);
-                    blockAccess++;
-
+                if (ptr == lastIndex) {
+                    // If reach end of searching key, just get the child node of the Most Right
+                    int target = lastIndex + 1;
+                    totalBlockAccessed += 1;
+                    thisNode = tempIntNode.getChildNode(target);
                     break;
                 }
             }
         }
-
-        // after leaf node is found, find all records with same key
-        LeafNode curLeaf = (LeafNode) curr;
-        boolean found = false;
-        while (!found && curLeaf != null) {
-            for (int i = 0; i < curLeaf.getKeys().size(); i++) {
-                // found same key, add into result list
-                if (Float.compare(curLeaf.getKey(i), low) >= 0 && Float.compare(curLeaf.getKey(i), high) <= 0) {
-                    result.add(curLeaf.getAddress(i));
+        // Reach Leaf Node, find all records with key that satisfy requirement
+        LeafNode currentLeafNode = (LeafNode) thisNode;
+        boolean end = false;
+        while (end == false && currentLeafNode != null) {
+            for (int ptr = 0; ptr < currentLeafNode.getKeys().size(); ptr++) {
+                // When found valid key, add into addressResult list
+                float targetKey = currentLeafNode.getKey(ptr);
+                /* float targetKey = currentLeafNode.getKey(ptr); */
+                if (targetKey <= highBound && currentLeafNode.getKey(ptr) >= lowBound) {
+                    Address targetAddress = currentLeafNode.getAddress(ptr);
+                    addressResult.add(targetAddress);
                     continue;
                 }
-                // if curKey > searching key, no need to continue searching
-                if (curLeaf.getKey(i) > high) {
-                    found = true;
+                // if curKey > searching key, stop searching and exit
+                if (targetKey > highBound) {
+                    end = true;
                     break;
                 }
             }
-            if (!found) {
-                // trying to check sibling node has remaining records of same key
-                if (curLeaf.getNextNode() != null) {
-                    curLeaf = (LeafNode) curLeaf.getNextNode();
-                    blockAccess++;
-                } else {
+            if (end == false) {
+                // Check sibling node has remaining records of valid Keys
+                if (currentLeafNode.getNextNode() == null) {
                     break;
+                } else {
+                    totalBlockAccessed += 1;
+                    currentLeafNode = (LeafNode) currentLeafNode.getNextNode();
                 }
             }
         }
@@ -652,9 +672,9 @@ public class BPTree {
         System.out.println();
         System.out.println("B+ tree");
         System.out.println("------------------------------------------------------------------");
-        System.out.printf("Total no of index nodes accesses: %d\n", blockAccess);
-        System.out.printf("Total no of data block accesses: %d\n", result.size() + blockAccess);
-        return result;
+        System.out.printf("Total no of index nodes accesses: %d\n", totalBlockAccessed);
+        System.out.printf("Total no of data block accesses: %d\n", addressResult.size() + totalBlockAccessed);
+        return addressResult;
     }
 
 }
