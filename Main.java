@@ -20,13 +20,13 @@ public class Main implements Config {
     private Disk disk;
     private BPTree BpTree;
 
-    public static String parseDate(String date){
+    public static String parseDate(String date) {
         String[] dateParts = date.split("/");
-        
+
         int day = Integer.parseInt(dateParts[0]);
         int month = Integer.parseInt(dateParts[1]);
         int year = Integer.parseInt(dateParts[2]);
-        
+
         String formattedDay = String.format("%02d", day);
         String formattedMonth = String.format("%02d", month);
         String formattedYear = String.format("%04d", year);
@@ -58,7 +58,8 @@ public class Main implements Config {
             int REB_home = Integer.parseInt(fields[7].isEmpty() ? "0" : fields[7]);
             boolean HOME_TEAM_WINS = fields[8] != "0";
 
-            Record r = new Record(GAME_DATE_EST, TEAM_ID_home, PTS_home, FG_PCT_home, FT_PCT_home, FG3_PCT_home, AST_home, REB_home, HOME_TEAM_WINS);
+            Record r = new Record(GAME_DATE_EST, TEAM_ID_home, PTS_home, FG_PCT_home, FT_PCT_home, FG3_PCT_home,
+                    AST_home, REB_home, HOME_TEAM_WINS);
             records.add(r);
         }
 
@@ -81,7 +82,8 @@ public class Main implements Config {
             dataAddr = disk.insertRecord(d);
             BpTree.doBPTreeInsertion(d.FG_PCT_home, dataAddr);
         }
-        System.out.println("Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
+        System.out.println(
+                "Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
         System.out.println();
     }
 
@@ -93,7 +95,6 @@ public class Main implements Config {
         System.out.println("Number of blocks for storing the data: " + disk.getBlockCount());
     }
 
-    
     public void runExperiment2() {
         System.out.println("\nRunning Experiment 2...");
         BpTree.showExperiment2();
@@ -103,21 +104,22 @@ public class Main implements Config {
         System.out.println("\nRunning Experiment 3...");
 
         long startTime = System.nanoTime();
-        ArrayList<Address> dataAddress = BpTree.showExperiment3(500); // “numVotes” equal to 500 and store them into ArrayList
-        ArrayList<Record> records = disk.doRecordRetrieval(dataAddress); // To store all the records fit the condition above
+        ArrayList<Address> dataAddress = BpTree.showExperiment3(500); // “numVotes” equal to 500 and store them into
+                                                                      // ArrayList
+        ArrayList<Record> records = disk.doRecordRetrieval(dataAddress); // To store all the records fit the condition
+                                                                         // above
 
         long runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the retrieval process is " + runtime/1000000 + " ms");
+        System.out.println("The running time of the retrieval process is " + runtime / 1000000 + " ms");
 
         double averageRate = 0;
         for (Record r : records) {
             averageRate += r.getAverageRating();
         }
 
-        averageRate /= records.size(); //total rating divide by the size of the arraylist to get the average
+        averageRate /= records.size(); // total rating divide by the size of the arraylist to get the average
 
         System.out.println("The average rating of the records that numVotes = 500 is " + averageRate);
-
 
         startTime = System.nanoTime();
 
@@ -125,53 +127,55 @@ public class Main implements Config {
         records = ls.doLinearScan(500);
 
         runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the retrieval process (brute-force linear scan method) is " + runtime/1000000 + " ms");
+        System.out.println("The running time of the retrieval process (brute-force linear scan method) is "
+                + runtime / 1000000 + " ms");
 
         averageRate = 0;
         for (Record r : records) {
             averageRate += r.getAverageRating();
         }
 
-        averageRate /= records.size(); //total rating divide by the size of the arraylist to get the average
+        averageRate /= records.size(); // total rating divide by the size of the arraylist to get the average
 
-        System.out.println("The average rating of the records that numVotes = 500 (brute-force linear scan method) is " + averageRate);
+        System.out.println("The average rating of the records that numVotes = 500 (brute-force linear scan method) is "
+                + averageRate);
 
     }
 
-    public void runExperiment4() {
+    public void runExperiment4() throws Exception {
         System.out.println("\nRunning Experiment 4...");
 
-        long startTime = System.nanoTime();
-        ArrayList<Address> dataAddress = BpTree.doRangeRecordsRetrieval1(30000,40000);
-        ArrayList<Record> records = disk.doRecordRetrieval(dataAddress);
+        long startingTime = System.nanoTime();
+        ArrayList<Address> addressResult = BpTree.doRangeRecordsRetrieval1(0.6f, 1.0f);
+        ArrayList<Record> recordResult = disk.getRecords(addressResult);
 
-        long runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the retrieval process is " + runtime/1000000 + " ms");
+        long totalRuntime = System.nanoTime() - startingTime;
+        System.out.println("The running time of the retrieval process is " + totalRuntime / 1000000 + " ms");
 
-        double averageRate = 0;
-        for (Record r : records) {
-            averageRate += r.getAverageRating();
+        float averageVal = 0;
+        for (Record r : recordResult) {
+            averageVal += r.FG3_PCT_home;
         }
 
-        averageRate /= records.size();
+        averageVal /= recordResult.size();
 
-        System.out.println("The average rating of the records where numVotes from 30000 - 40000 is " + averageRate);
+        System.out.println("The average rating of the records where FG3_PCT_home from 0.6 - 1 is " + averageVal);
 
-        startTime = System.nanoTime();
-        LinearScan ls = new LinearScan(disk.doBlockRetrieval());
-        records = ls.doLinearScanRange(30000,40000);
-        runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the retrieval process (brute-force linear scan method) is " + runtime/1000000 + " ms");
-
-        averageRate = 0;
-        for (Record r : records) {
-            averageRate += r.getAverageRating();
+        startingTime = System.nanoTime();
+        recordResult = disk.linearScan(0.6f, 1.0f);
+        totalRuntime = System.nanoTime() - startingTime;
+        System.out.println("The running time of the retrieval process (brute-forcelinear scan method) is "
+                + totalRuntime / 1000000 + " ms");
+        averageVal = 0;
+        for (Record r : recordResult) {
+            averageVal += r.FG3_PCT_home;
         }
 
-        averageRate /= records.size(); //total rating divide by the size of the arraylist to get the average
+        averageVal /= recordResult.size(); // total rating divide by the size of the arraylist to get the average
 
-        System.out.println("The average rating of the records where numVotes from 30000 - 40000 using (brute-force linear scan method) is " + averageRate + "\n");
-
+        System.out.println(
+                "The average rating of the records where FG3_PCT_home from 0.6 - 1 using (brute-force linear scan method) is "
+                        + averageVal + "\n");
 
     }
 
@@ -183,25 +187,27 @@ public class Main implements Config {
         long startTime = System.nanoTime();
         disk.doRecordDeletion(BpTree.doKeyRemoval(1000));
         long runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the deletion process is " + runtime/1000000 + " ms");
+        System.out.println("The running time of the deletion process is " + runtime / 1000000 + " ms");
         BpTree.showExperiment2();
 
         startTime = System.nanoTime();
         LinearScan ls = new LinearScan();
-        ls.doLinearScanDeletion(1000,disk);
+        ls.doLinearScanDeletion(1000, disk);
         runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the deletion process is (brute-force linear scan method) " + runtime/1000000 + " ms");
+        System.out.println("The running time of the deletion process is (brute-force linear scan method) "
+                + runtime / 1000000 + " ms");
     }
-
 
     public void displayMenu(int type) throws Exception {
         if (type == 1) {
-            System.out.println("======================================================================================");
+            System.out
+                    .println("======================================================================================");
             System.out.println("            << Welcome to Group 8's DSP Project 1 Implementation >>");
             System.out.println();
             System.out.println("What would you like to do?");
             System.out.println("1) Select an experiment \n2) Exit");
-            System.out.println("======================================================================================");
+            System.out
+                    .println("======================================================================================");
             System.out.print("You have selected: ");
             Scanner in = new Scanner(System.in);
             String input = in.nextLine();
@@ -216,15 +222,22 @@ public class Main implements Config {
         } else {
             String input;
             do {
-                System.out.println("======================================================================================");
+                System.out.println(
+                        "======================================================================================");
                 System.out.println("Which experiment would you like to run?");
-                System.out.println("Experiment (1): Store the data on the disk & show No. of Records, Size of a Record, No. of Records stored in a Block, and No. of Blocks for storing data.");
-                System.out.println("Experiment (2): Build a B+ tree on the attribute ”numVote” by inserting the records sequentially & show the B+ Tree's parameter n value, No. of Nodes, No. of Levels and Root Node Content.");
-                System.out.println("Experiment (3): Retrieve movies with the “numVotes” equal to 500 and its required statistics.");
-                System.out.println("Experiment (4): Retrieve movies with votes between 30,000 and 40,000 and its required statistics.");
-                System.out.println("Experiment (5): Delete movies with the attribute “numVotes” equal to 1,000 and its required statistics.");
+                System.out.println(
+                        "Experiment (1): Store the data on the disk & show No. of Records, Size of a Record, No. of Records stored in a Block, and No. of Blocks for storing data.");
+                System.out.println(
+                        "Experiment (2): Build a B+ tree on the attribute ”numVote” by inserting the records sequentially & show the B+ Tree's parameter n value, No. of Nodes, No. of Levels and Root Node Content.");
+                System.out.println(
+                        "Experiment (3): Retrieve movies with the “numVotes” equal to 500 and its required statistics.");
+                System.out.println(
+                        "Experiment (4): Retrieve movies with votes between 30,000 and 40,000 and its required statistics.");
+                System.out.println(
+                        "Experiment (5): Delete movies with the attribute “numVotes” equal to 1,000 and its required statistics.");
                 System.out.println("           (exit): Exit ");
-                System.out.println("======================================================================================");
+                System.out.println(
+                        "======================================================================================");
                 System.out.print("Selection: ");
                 Scanner in = new Scanner(System.in);
                 input = in.nextLine();
@@ -250,7 +263,7 @@ public class Main implements Config {
         }
     }
 
-    //End of Main Functions
+    // End of Main Functions
     public static void main(String[] args) {
         try {
             Main app = new Main();
