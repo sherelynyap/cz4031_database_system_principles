@@ -62,7 +62,7 @@ public class LeafNode extends Node {
     }
 
     public void deleteAddress(int targetIndex) {
-        doKeyDeletion(targetIndex);
+        deleteKey(targetIndex);
         addressesSet.remove(targetIndex);
     }
 
@@ -83,7 +83,7 @@ public class LeafNode extends Node {
      * doSeparation(): Deletes all keys and resets all the addresses
      */
     public void doSeparation() {
-        doKeysDeletion();
+        deleteAllKeys();
         resetAddresses();
     }
 

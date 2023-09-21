@@ -98,11 +98,11 @@ public class Node {
     }
 
     // delete key in the node
-    public void doKeyDeletion(int targetIndex) {
+    public void deleteKey(int targetIndex) {
         this.keysSet.remove(targetIndex);
     }
 
-    public void doKeysDeletion() {
+    public void deleteAllKeys() {
         // this.keysSet = new ArrayList<>();
         doClearKeys();
     }
@@ -126,7 +126,7 @@ public class Node {
      * the first key of the left-most child of the current node and returns it as
      * the smallest key.
      */
-    public float doSmallestKeyRetrieval() {
+    public float retrieveSmallestKey() {
         float minKey;
         InternalNode temp;
         int firstIndex = 0;
@@ -166,9 +166,9 @@ public class Node {
      * Sets the isRootNode and isLeafNode flags to true and initializing the keys
      * list to a new empty list.
      */
-    public void doNodeDeletion() {
+    public void deleteNode() {
         if (internalNode != null) {
-            internalNode.doChildNodeDeletion(this);
+            internalNode.deleteChildNode(this);
             internalNode = null;
         }
         if (isLeaf == true) {
@@ -177,7 +177,7 @@ public class Node {
             tempLeaf.setNextNode(null);
         } else {
             InternalNode tempInt = (InternalNode) this;
-            tempInt.doAllChildNodesDeletion();
+            tempInt.deleteAllChildNodes();
         }
 
         this.isRoot = true;
