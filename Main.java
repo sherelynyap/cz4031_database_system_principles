@@ -70,7 +70,7 @@ public class Main implements Config {
 
     public void doBlockCreation() throws Exception {
         disk = new Disk();
-        BpTree = new BPTree(blkSize);
+        BpTree = new BPTree(400);
         List<Record> data = doRecordReading(DATA_FILE_PATH);
 
         System.out.println();
@@ -79,7 +79,7 @@ public class Main implements Config {
         Address dataAddr;
         for (Record d : data) {
             dataAddr = disk.insertRecord(d);
-            BpTree.doBPTreeInsertion(d.FG_PCT_home, dataAddr);
+            BpTree.insert(d.FG_PCT_home, dataAddr);
         }
         System.out.println("Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
         System.out.println();
@@ -99,42 +99,37 @@ public class Main implements Config {
         BpTree.showExperiment2();
     }
 
-    public void runExperiment3() {
+    public void runExperiment3() throws Exception {
         System.out.println("\nRunning Experiment 3...");
 
         long startTime = System.nanoTime();
-        ArrayList<Address> dataAddress = BpTree.showExperiment3(500); // “numVotes” equal to 500 and store them into ArrayList
-        ArrayList<Record> records = disk.doRecordRetrieval(dataAddress); // To store all the records fit the condition above
+        ArrayList<Address> dataAddress = BpTree.showExperiment3((float)0.5); 
+        ArrayList<Record> records = disk.getRecords(dataAddress); // To store all the records fit the condition above
 
         long runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the retrieval process is " + runtime/1000000 + " ms");
+        System.out.println("The running time of the retrieval process: " + runtime/1000000 + " ms");
 
-        double averageRate = 0;
+        double total_FG3 = 0;
         for (Record r : records) {
-            averageRate += r.getAverageRating();
+            total_FG3 += r.FG3_PCT_home;
         }
 
-        averageRate /= records.size(); //total rating divide by the size of the arraylist to get the average
-
-        System.out.println("The average rating of the records that numVotes = 500 is " + averageRate);
+        System.out.println("For records with FG_PCT_home = 0.5, average FG3_PCT_home: " + total_FG3 / records.size());
 
 
         startTime = System.nanoTime();
 
-        LinearScan ls = new LinearScan(disk.doBlockRetrieval());
-        records = ls.doLinearScan(500);
+        records = disk.linearScan((float) 0.5);
 
         runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the retrieval process (brute-force linear scan method) is " + runtime/1000000 + " ms");
+        System.out.println("The running time of the retrieval process (brute-force linear scan method): " + runtime/1000000 + " ms");
 
-        averageRate = 0;
+        total_FG3 = 0;
         for (Record r : records) {
-            averageRate += r.getAverageRating();
+            total_FG3 += r.FG3_PCT_home;
         }
 
-        averageRate /= records.size(); //total rating divide by the size of the arraylist to get the average
-
-        System.out.println("The average rating of the records that numVotes = 500 (brute-force linear scan method) is " + averageRate);
+        System.out.println("For records with FG_PCT_home = 0.5, average FG3_PCT_home (brute-force linear scan method): " + total_FG3 / records.size());
 
     }
 
