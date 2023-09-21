@@ -48,14 +48,20 @@ public class Main implements Config {
         reader.readLine();
         while ((line = reader.readLine()) != null) {
             fields = line.split("\\t");
+
+            //Ignore empty fields
+            if (fields[2].isEmpty()){
+                continue;
+            }
+
             String GAME_DATE_EST = parseDate(fields[0]);
             int TEAM_ID_home = Integer.parseInt(fields[1]);
-            int PTS_home = Integer.parseInt(fields[2].isEmpty() ? "0" : fields[2]);
-            float FG_PCT_home = Float.parseFloat(fields[3].isEmpty() ? "0" : fields[3]);
-            float FT_PCT_home = Float.parseFloat(fields[4].isEmpty() ? "0" : fields[4]);
-            float FG3_PCT_home = Float.parseFloat(fields[5].isEmpty() ? "0" : fields[5]);
-            int AST_home = Integer.parseInt(fields[6].isEmpty() ? "0" : fields[6]);
-            int REB_home = Integer.parseInt(fields[7].isEmpty() ? "0" : fields[7]);
+            int PTS_home = Integer.parseInt(fields[2]);
+            float FG_PCT_home = Float.parseFloat(fields[3]);
+            float FT_PCT_home = Float.parseFloat(fields[4]);
+            float FG3_PCT_home = Float.parseFloat(fields[5]);
+            int AST_home = Integer.parseInt(fields[6]);
+            int REB_home = Integer.parseInt(fields[7]);
             boolean HOME_TEAM_WINS = fields[8] != "0";
 
             Record r = new Record(GAME_DATE_EST, TEAM_ID_home, PTS_home, FG_PCT_home, FT_PCT_home, FG3_PCT_home, AST_home, REB_home, HOME_TEAM_WINS);
@@ -70,7 +76,7 @@ public class Main implements Config {
 
     public void doBlockCreation() throws Exception {
         disk = new Disk();
-        BpTree = new BPTree(blkSize);
+        //BpTree = new BPTree(blkSize);
         List<Record> data = doRecordReading(DATA_FILE_PATH);
 
         System.out.println();
@@ -79,7 +85,7 @@ public class Main implements Config {
         Address dataAddr;
         for (Record d : data) {
             dataAddr = disk.insertRecord(d);
-            BpTree.doBPTreeInsertion(d.FG_PCT_home, dataAddr);
+            //BpTree.doBPTreeInsertion(d.FG_PCT_home, dataAddr);
         }
         System.out.println("Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
         System.out.println();
@@ -260,4 +266,5 @@ public class Main implements Config {
             e.printStackTrace();
         }
     }
+    
 }
