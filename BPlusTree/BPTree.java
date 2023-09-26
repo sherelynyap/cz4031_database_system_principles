@@ -6,138 +6,81 @@ import java.util.ArrayList;
 import java.lang.Float;
 
 public class BPTree {
-    // Pointer size is 8B
+    // Pointer = 8B, Key = 4B, Bool = 1B
     private static final int POINTER_SIZE = 8;
-    // Key size is 4B
     private static final int KEY_SIZE = 4;
+    private static final int BOOL_SIZE = 1;
     Node root;
-    int noOfLevels;
-    int noOfNodes;
-    int noOfNodesDeleted;
-    int maxNoOfKeys;
-    int minNoOfInternalKeys;
-    int minNoOfLeafKeys;
+    int numLevels;
+    int numNodes;
+    int numDeletedNodes;
+    int maxKeys;
+    int minInternalKeys;
+    int minLeafKeys;
 
-    public BPTree(int sizeOfBlock) {
-        // calculation of n
-        maxNoOfKeys = (sizeOfBlock - POINTER_SIZE) / (POINTER_SIZE + KEY_SIZE);
-        minNoOfInternalKeys = (int) Math.floor(maxNoOfKeys / 2);
-        minNoOfLeafKeys = (int) Math.floor((maxNoOfKeys + 1) / 2);
+    public BPTree(int blkSize) {
+        // InternalNode_ptr(8B) + isRoot(1B) + isLeaf(1B) + 4n + 8(n+1) <= blkSize
+        maxKeys = (blkSize - 2*POINTER_SIZE -2*BOOL_SIZE) / (POINTER_SIZE + KEY_SIZE);
+        minInternalKeys = (int) Math.floor(maxKeys / 2);
+        minLeafKeys = (int) Math.floor((maxKeys + 1) / 2);
 
         root = new LeafNode();
-        noOfLevels = 1;
-        noOfNodes = 1;
+        numLevels = 1;
+        numNodes = 1;
         root.setIsRootNode(true);
 
-        noOfNodes = 0;
-        noOfNodesDeleted = 0;
+        numNodes = 0;
+        numDeletedNodes = 0;
 
-        System.out.println("Block Size: " + sizeOfBlock + "B");
-        System.out.println("Max no. of keys in a node: " + maxNoOfKeys);
-        System.out.println("Min no. of keys in an internal node: " + minNoOfInternalKeys);
-        System.out.println("Min no. of keys in a leaf node: " + minNoOfLeafKeys);
+        System.out.println("Block Size: " + blkSize + "B");
+        System.out.println("Max no. of keys in a node: " + maxKeys);
+        System.out.println("Min no. of keys in an internal node: " + minInternalKeys);
+        System.out.println("Min no. of keys in a leaf node: " + minLeafKeys);
         System.out.println();
     }
 
-    public void doBPTreeInsertion(float key, Address address) {
-        this.doLeafNodeInsertion(this.doLeafNodeSearch(key), key, address);
+    public void insert(float key, Address address) {
+        this.insertLeafNode(this.searchLeafNode(key), key, address);
     }
 
     /**
-     * doLeafNodeSearch(float key): Search for a leaf node in a B+ tree that
-     * contains a specific key.
-     * 
-     * Check if root node is a leaf node.
-     * If it is a leaf node:
-     * Returns the root node as a LeafNode object.
-     * If it is not a leaf node:
-     * Retrieves the keys and child nodes of the root's internal node.
-     * 
-     * Iterates through the keys in the internal node to find the index of the child
-     * node that should contain the input key.
-     * It retrieves the child node at that index and checks if it is a leaf node.
-     * If it is a leaf node:
-     * Return the child node as a leaf node.
-     * If it is not a leaf node:
-     * Calls the recursive function doLeafNodeSearch(InternalNode internalNode,
-     * float key) until it finds a leaf node
-     * containing the input key.
-     */
-    public LeafNode doLeafNodeSearch(float key) {
+    searchLeafNode(float key): Search for a leaf node in a B+ tree that contains a specific key.
+    */
+    public LeafNode searchLeafNode(float key) {
         if (this.root.getIsLeafNode())
             return (LeafNode) root;
 
-        ArrayList<Float> keys;
         InternalNode internalNode = (InternalNode) root;
+        while (true) {
+            ArrayList<Float> keys = internalNode.getKeys();
 
-        keys = internalNode.getKeys();
+            int i;
 
-        int i;
-
-        for (i = 0; i < keys.size(); i++) {
-            if (key < keys.get(i)) {
-                break;
+            for (i = 0; i < keys.size(); i++) {
+                if (key < keys.get(i)) {
+                    break;
+                }
             }
-        }
 
-        Node child = internalNode.getChildNode(i);
+            Node child = internalNode.getChildNode(i);
 
-        if (child.getIsLeafNode()) {
-            return (LeafNode) child;
-        } else {
-            return doLeafNodeSearch((InternalNode) child, key);
-        }
+            if (child.getIsLeafNode()) {
+                return (LeafNode) child;
+            } else {
+                // continue loop with child node
+                internalNode = (InternalNode) child;
+            }
+        
+        } 
 
     }
 
     /**
-     * doLeafNodeSearch(InternalNode internalNode, float key): Recursive method that
-     * searches for a leaf node in the
-     * B+ tree that corresponds to a given key.
-     * 
-     * Retrieves the keys of the internal node and iterates over them to find the
-     * index of the child node that may
-     * contain the given key. It then retrieves the child node at that index.
-     * If the retrieved child node is a leaf node:
-     * Returns the child node
-     * If the retrieved child node is not a leaf node:
-     * Recursively calls itself with the child node as the new InternalNode
-     * parameter, and continues the search
-     * for the leaf node corresponding to the given key.
-     */
-    public LeafNode doLeafNodeSearch(InternalNode internalNode, float key) {
-        ArrayList<Float> keys = internalNode.getKeys();
-        int i;
-
-        for (i = 0; i < keys.size(); i++) {
-            if (key < keys.get(i)) {
-                break;
-            }
-        }
-
-        Node child = internalNode.getChildNode(i);
-        if (child.getIsLeafNode()) {
-            return (LeafNode) child;
-        } else {
-            return doLeafNodeSearch((InternalNode) child, key);
-        }
-
-    }
-
-    /**
-     * doLeafNodeInsertion(LeafNode leafNode, float key, Address address): Insert a
-     * new key-value pair into a leaf node in a B+ tree.
-     * 
-     * Checks if the leaf node is already full aka max keys allowed
-     * If full:
-     * Calls the splitLeafNode method to split the node into two and reorganize the
-     * tree structure.
-     * If not full:
-     * Adds the new key-value pair to the leaf node
-     */
-    public void doLeafNodeInsertion(LeafNode leafNode, float key, Address address) {
+    insertLeafNode(LeafNode leafNode, float key, Address address): Insert a new key-value pair into a leaf node in a B+ tree.
+    */
+    public void insertLeafNode(LeafNode leafNode, float key, Address address) {
         try {
-            if (leafNode.getKeys().size() >= maxNoOfKeys) {
+            if (leafNode.getKeys().size() >= maxKeys) {
                 splitLeafNode(leafNode, key, address);
             } else {
                 leafNode.setAddress(key, address);
@@ -149,70 +92,24 @@ public class BPTree {
     }
 
     /**
-     * splitLeafNode(LeafNode prevLeaf, float key, Address address): split the node
-     * into two and reorganize the tree.
-     * 
-     * Description:
-     * When a leaf node reaches the maximum number of keys, it needs to be split
-     * into two separate leaf nodes.
-     * Creates a new leaf node (newLeaf) and splits the original leaf node
-     * (prevLeaf) into two nodes.
-     * The original leaf node retains the first minNoOfLeafKeys keys and their
-     * associated addresses, and the rest of
-     * the keys and their addresses are moved to the new leaf node.
-     * 
-     * Steps Taken:
-     * 1) Create local arrays for addresses and keys to store original and new key
-     * to insert.
-     * 2) It inserts the old leaf's keys and addresses into the arrays.
-     * 3) Compares the new key to be inserted with the old leaf's keys from the tail
-     * of the keys array.
-     * If the new key is greater than the existing key:
-     * Inserted to the right side
-     * If it is smaller than the existing key:
-     * then all the keys greater than the new key are shifted to the right to make
-     * space for the new key,
-     * and then it is inserted to the correct position
-     * 4) Delete all keys and resets all the addresses in old leaf (using LeafNode
-     * doSeparation())
-     * 5) Re-insert the latest keys and addresses from local array into the two leaf
-     * nodes;
-     * Once old leaf node is full, continue inserting in new leaf node
-     * 6) Once the keys and addresses have been split between the old and new leaf
-     * nodes, their pointers are adjusted
-     * accordingly.
-     * The old leaf node is pointed to the new leaf node, and the new leaf node is
-     * pointed to the previous next node.
-     * 7) If the old leaf node was the root node:
-     * Internal node is created (Every 2 nodes need a parent nodes, thus we need a
-     * new node),
-     * and the old root node is set to become a regular node with the new internal
-     * node as its
-     * parent (aka the new root node).
-     * If the old leaf node was NOT the root node & has space for the new leaf node:
-     * New leaf node is inserted to the parent node of the old leaf node.
-     * If the old leaf node was NOT the root node & has NO space for the new leaf
-     * node:
-     * doParentSeparation(InternalNode parentNode, Node childNode) is called to do a
-     * node separation operation
-     * to create a new parent node (split similarly to the leaf node)
-     * 8) noOfNodes is incremented to reflect the addition of the new nodes.
+    splitLeafNode(LeafNode prevLeaf, float key, Address address): split the node into two and reorganize the tree.
+
      */
     public void splitLeafNode(LeafNode prevLeaf, float key, Address address) {
-        // (1)
-        Address addresses[] = new Address[maxNoOfKeys + 1];
-        float keys[] = new float[maxNoOfKeys + 1];
+        
+        Address addresses[] = new Address[maxKeys + 1];
+        float keys[] = new float[maxKeys + 1];
         LeafNode newLeaf = new LeafNode();
 
-        // (2)
+        
         int i;
-        for (i = 0; i < maxNoOfKeys; i++) {
+        for (i = 0; i < maxKeys; i++) {
             keys[i] = prevLeaf.getKey(i);
             addresses[i] = prevLeaf.getAddress(i);
         }
 
-        // (3)
-        for (i = maxNoOfKeys - 1; i >= 0; i--) {
+        
+        for (i = maxKeys - 1; i >= 0; i--) {
 
             if (Float.compare(keys[i], key) <= 0) {
                 i++;
@@ -225,105 +122,60 @@ public class BPTree {
             addresses[i + 1] = addresses[i];
         }
 
-        // (4)
+        
         prevLeaf.doSeparation();
 
-        // (5)
-        for (i = 0; i < minNoOfLeafKeys; i++)
+        
+        for (i = 0; i < minLeafKeys; i++)
             prevLeaf.setAddress(keys[i], addresses[i]);
-        for (i = minNoOfLeafKeys; i < maxNoOfKeys + 1; i++)
+        for (i = minLeafKeys; i < maxKeys + 1; i++)
             newLeaf.setAddress(keys[i], addresses[i]);
 
-        // (6)
+        
         newLeaf.setNextNode(prevLeaf.getNextNode());
         prevLeaf.setNextNode(newLeaf);
 
-        // (7)
+        
         if (prevLeaf.getIsRootNode()) {
 
             InternalNode newRoot = new InternalNode();
             prevLeaf.setIsRootNode(false);
             newRoot.setIsRootNode(true); // New node become the root node
-            newRoot.doChildInsertion(prevLeaf); // Add left child
-            newRoot.doChildInsertion(newLeaf); // Add right child
+            newRoot.insertChild(prevLeaf); // Add left child
+            newRoot.insertChild(newLeaf); // Add right child
             root = newRoot;
-            noOfLevels++;
-        } else if (prevLeaf.getInternalNode().getKeys().size() < maxNoOfKeys) {
-            prevLeaf.getInternalNode().doChildInsertion(newLeaf);
+            numLevels++;
+        } else if (prevLeaf.getInternalNode().getKeys().size() < maxKeys) {
+            prevLeaf.getInternalNode().insertChild(newLeaf);
         } else {
-            doParentSeparation(prevLeaf.getInternalNode(), newLeaf);
+            separateParentNode(prevLeaf.getInternalNode(), newLeaf);
         }
 
-        // (8)
-        noOfNodes++;
+        
+        numNodes++;
     }
 
     /**
-     * doParentSeparation(InternalNode parentNode, Node childNode): Split the
-     * parentNode node when it has become full
-     * (i.e. contains the max num of keys) and insert a new child node.
-     * 
-     * Steps Taken:
-     * 1) Create two new arrays, childNodes and keys, with sizes maxNoOfKeys + 2 to
-     * store the children and keys.
-     * Retrieves the smallest key value of childNode using doSmallestKeyRetrieval().
-     * Create parentNode2 as an internal node and not a root node.
-     * 2) Copies the current children to the childNodes array and their smallest
-     * keys to key array (full and sorted lists)
-     * 3) Insert the smallest key value of childNode into the sorted keys array.
-     * How the code works:
-     * Iterate from the maximum number of keys down to zero.
-     * This is to move existing keys and child nodes down one position to make room
-     * for the new one.
-     * If the current key is less than or equal to the key being inserted:
-     * the new key and child node are inserted at the next position in the array,
-     * and the loop is broken.
-     * If the current key is greater than the key being inserted:
-     * Shift the current key and child node down one position in the array to make
-     * room for the new one.
-     * If the loop completes without finding a position to insert the new key and
-     * child
-     * node (i.e. keys[0] = key; childNodes[0] = childNode;):
-     * New key and child node belong at the beginning of the array
-     * 4) The parentNode object is then cleared of all its old values using
-     * doSeparation().
-     * 5) The first minNoOfInternalKeys + 2 children from the childNodes array are
-     * inserted back into the parentNode,
-     * while the remaining children are inserted into a new InternalNode object
-     * named parentNode2.
-     * 6) Checks whether parentNode is the root node.
-     * If parentNode is the root node:
-     * a new root node (newRoot) is created.
-     * parentNode IsRootNode status becomes false.
-     * newRoot IsRootNode status becomes true.
-     * newRoot becomes the root node with parentNode and parentNode2 as its
-     * children.
-     * noOfLevels is incremented.
-     * If parentNode is NOT the root node and there is still space for a new key in
-     * parentNode:
-     * parentNode2 is added as a child of parentNode
-     * If there is no space in parentNode:
-     * doParentSeparation() is called using the parent of parentNode and
-     * parentNode2.
-     * 7) Increments noOfNodes after the node separation operation is completed.
-     */
-    public void doParentSeparation(InternalNode parentNode, Node childNode) {
+    separateParentNode(InternalNode parentNode, Node childNode): Split the parentNode node when it has become full
+    (i.e. contains the max num of keys) and insert a new child node.
+    */
+    public void separateParentNode(InternalNode parentNode, Node childNode) {
 
-        // (1)
-        Node childNodes[] = new Node[maxNoOfKeys + 2];
-        float keys[] = new float[maxNoOfKeys + 2];
-        float key = childNode.doSmallestKeyRetrieval();
+        
+        Node childNodes[] = new Node[maxKeys + 2];
+        float keys[] = new float[maxKeys + 2];
+        float key = childNode.retrieveSmallestKey();
         InternalNode parentNode2 = new InternalNode();
         parentNode2.setIsRootNode(false);
 
-        // (2)
-        for (int i = 0; i < maxNoOfKeys + 1; i++) {
+        
+        for (int i = 0; i < maxKeys + 1; i++) {
             childNodes[i] = parentNode.getChildNode(i);
-            keys[i] = childNodes[i].doSmallestKeyRetrieval();
+            keys[i] = childNodes[i].retrieveSmallestKey();
         }
 
-        // (3)
-        for (int i = maxNoOfKeys; i >= 0; i--) {
+        
+        for (int i = maxKeys; i >= 0; i--) {
             if (Float.compare(keys[i], key) <= 0) {
                 i++;
                 keys[i] = key;
@@ -335,57 +187,52 @@ public class BPTree {
             childNodes[i + 1] = childNodes[i];
         }
 
-        // (4)
+        
         parentNode.doSeparation();
 
-        // (5)
-        for (int i = 0; i < minNoOfInternalKeys + 2; i++)
-            parentNode.doChildInsertion(childNodes[i]);
-        for (int i = minNoOfInternalKeys + 2; i < maxNoOfKeys + 2; i++)
-            parentNode2.doChildInsertion(childNodes[i]);
+        
+        for (int i = 0; i < minInternalKeys + 2; i++)
+            parentNode.insertChild(childNodes[i]);
+        for (int i = minInternalKeys + 2; i < maxKeys + 2; i++)
+            parentNode2.insertChild(childNodes[i]);
 
-        // (6)
+        
         if (parentNode.getIsRootNode()) {
 
             InternalNode newRoot = new InternalNode();
             parentNode.setIsRootNode(false);
             newRoot.setIsRootNode(true);
-            newRoot.doChildInsertion(parentNode);
-            newRoot.doChildInsertion(parentNode2);
+            newRoot.insertChild(parentNode);
+            newRoot.insertChild(parentNode2);
             root = newRoot;
-            noOfLevels++;
-        } else if (parentNode.getInternalNode().getKeys().size() < maxNoOfKeys) {
-            parentNode.getInternalNode().doChildInsertion(parentNode2);
+            numLevels++;
+        } else if (parentNode.getInternalNode().getKeys().size() < maxKeys) {
+            parentNode.getInternalNode().insertChild(parentNode2);
         } else {
-            doParentSeparation(parentNode.getInternalNode(), parentNode2);
+            separateParentNode(parentNode.getInternalNode(), parentNode2);
         }
 
-        // (7)
-        noOfNodes++;
+        
+        numNodes++;
     }
 
     /**
-     * doKeyRemoval(float key): Remove key from the leaf node
-     * Steps Taken:
-     * 1) Initialize a keys array list, a leaf node and an addressList array list
-     * 2) Calls doRecordsWithKeysRetrieval() to retrieve the addresses of the
-     * records with the given key value to be deleted.
-     * 3) .size() is used with doRecordsWithKeysRetrieval() to determine the length
-     * of the returned list.
-     * 4) A leaf node is located that contains the key to be deleted using
-     * doLeafNodeSearch().
-     * The keys in the leaf node are obtained using leafNode.getKeys().
-     * Iterate over the keys in the leaf node:
-     * If a key in the leaf node matches the key to be deleted:
-     * the corresponding address is deleted from the leaf node.
-     * If the leaf node is not the root node:
-     * doLeafCleaning() is called to check if the leaf node does not meet the min no
-     * of keys requirement.
-     * Addresses from the leaf node are added to addressList.
-     * The loop is continued until all records in length have been deleted.
-     * 5) Number of nodes deleted during the leaf cleaning operation is subtracted
-     * from the total number of nodes.
-     * 6) Returns the list of addresses associated with the removed key.
+     doKeyRemoval(float key): Remove key from the leaf node
+     Steps Taken:
+        1) Initialize a keys array list, a leaf node and an addressList array list
+        2) Calls doRecordsWithKeysRetrieval() to retrieve the addresses of the records with the given key value to be deleted.
+        3) .size() is used with doRecordsWithKeysRetrieval() to determine the length of the returned list.
+        4) A leaf node is located that contains the key to be deleted using searchLeafNode().
+            The keys in the leaf node are obtained using leafNode.getKeys().
+            Iterate over the keys in the leaf node:
+                If a key in the leaf node matches the key to be deleted:
+                    the corresponding address is deleted from the leaf node.
+                        If the leaf node is not the root node:
+                            doLeafCleaning() is called to check if the leaf node does not meet the min no of keys requirement.
+                            Addresses from the leaf node are added to addressList.
+            The loop is continued until all records in length have been deleted.
+        5) Number of nodes deleted during the leaf cleaning operation is subtracted from the total number of nodes.
+        6) Returns the list of addresses associated with the removed key.
      */
     public ArrayList<Address> doKeyRemoval(float key) {
         // (1)
@@ -401,7 +248,7 @@ public class BPTree {
 
         // (4)
         for (int j = 0; j < length; j++) {
-            leafNode = doLeafNodeSearch(key);
+            leafNode = searchLeafNode(key);
             keys = leafNode.getKeys();
             for (int i = 0; i < keys.size(); i++) {
                 if (Float.compare(keys.get(i), key) == 0) {
@@ -415,74 +262,62 @@ public class BPTree {
             }
         }
 
-        System.out.println("No of nodes deleted: " + noOfNodesDeleted);
+        System.out.println("No of nodes deleted: " + numDeletedNodes);
 
         // (5)
-        noOfNodes -= noOfNodesDeleted;
+        numNodes -= numDeletedNodes;
 
         // (6)
         return returnAddressListToDelete;
     }
 
     /**
-     * doLeafCleaning(LeafNode leafNode): check if leaf node does not meet the min
-     * no of keys requirement
-     * The purpose of this operation is to either borrow keys from neighboring nodes
-     * or merge with them in order to
-     * maintain the minimum number of keys.
-     * 
-     * If it fulfills the min no of keys requirement:
-     * Calls the doParentNodeCleaning() to reset parent and returns
-     * If it DOES NOT fulfill the min no of keys requirement:
-     * Calculates how many keys are required to reach the requirement.
-     * Retrieve the left and right siblings of the leaf node to see how many keys
-     * they can spare
-     * If there are enough keys (leftExcess + rightExcess >= required):
-     * Borrows them and updates the leaf node's parent.
-     * If left sibling exists:
-     * sets the key and address from the last position of the left sibling node to
-     * the current leaf node
-     * and deletes the corresponding key and address from the left sibling node.
-     * If left sibling DOES NOT exist:
-     * sets the key and address from the first position of the right sibling node to
-     * the current leaf node
-     * and deletes the corresponding key and address from the right sibling node.
-     * Returns the parent internal node of the current leaf node and assigns it to
-     * copy.
-     * If there are NOT enough keys:
-     * it merges the leaf node with one of its siblings and updates the parent
-     * accordingly.
-     * If left sibling node exists:
-     * Copy all the keys and addresses from the current leaf node to the left
-     * sibling node.
-     * If left sibling node DOES NOT exist:
-     * Copy all the keys and addresses from the current leaf node to the right
-     * sibling node.
-     * Then it sets the pointer of the selected sibling to the next node of the
-     * current node and deletes the current node,
-     * increments the noOfNodesDeleted counter.
-     * 
-     * Updates the parent node of the current node (i.e. internal node that points
-     * to the leaf node) by calling doParentNodeCleaning().
+     doLeafCleaning(LeafNode leafNode): check if leaf node does not meet the min no of keys requirement
+     The purpose of this operation is to either borrow keys from neighboring nodes or merge with them in order to
+     maintain the minimum number of keys.
+
+     If it fulfills the min no of keys requirement:
+        Calls the doParentNodeCleaning() to reset parent and returns
+     If it DOES NOT fulfill the min no of keys requirement:
+        Calculates how many keys are required to reach the requirement.
+        Retrieve the left and right siblings of the leaf node to see how many keys they can spare
+        If there are enough keys (leftExcess + rightExcess >= required):
+            Borrows them and updates the leaf node's parent.
+            If left sibling exists:
+                sets the key and address from the last position of the left sibling node to the current leaf node
+                and deletes the corresponding key and address from the left sibling node.
+            If left sibling DOES NOT exist:
+                sets the key and address from the first position of the right sibling node to the current leaf node
+                and deletes the corresponding key and address from the right sibling node.
+            Returns the parent internal node of the current leaf node and assigns it to copy.
+        If there are NOT enough keys:
+            it merges the leaf node with one of its siblings and updates the parent accordingly.
+            If left sibling node exists:
+                Copy all the keys and addresses from the current leaf node to the left sibling node.
+            If left sibling node DOES NOT exist:
+                Copy all the keys and addresses from the current leaf node to the right sibling node.
+            Then it sets the pointer of the selected sibling to the next node of the current node and deletes the current node,
+            increments the numDeletedNodes counter.
+
+     Updates the parent node of the current node (i.e. internal node that points to the leaf node) by calling doParentNodeCleaning().
      */
     public void doLeafCleaning(LeafNode leafNode) {
 
-        if (leafNode.getKeys().size() >= minNoOfLeafKeys) {
+        if (leafNode.getKeys().size() >= minLeafKeys) {
             doParentNodeCleaning(leafNode.getInternalNode());
             return;
         }
 
-        int required = minNoOfLeafKeys - leafNode.getKeys().size();
+        int required = minLeafKeys - leafNode.getKeys().size();
         int leftExcess = 0;
         int rightExcess = 0;
         LeafNode left = (LeafNode) leafNode.getInternalNode().getLeftSiblingNode(leafNode);
         LeafNode right = (LeafNode) leafNode.getInternalNode().getRightSiblingNode(leafNode);
         InternalNode copy;
 
-        if (left != null)
-            leftExcess += left.getKeys().size() - minNoOfLeafKeys;
-        if (right != null)
-            rightExcess += right.getKeys().size() - minNoOfLeafKeys;
+        if (left != null) leftExcess += left.getKeys().size() - minLeafKeys;
+        if (right != null) rightExcess += right.getKeys().size() - minLeafKeys;
+
 
         if (leftExcess + rightExcess >= required) {
             if (left != null) {
@@ -512,69 +347,63 @@ public class BPTree {
 
             if (left == null) {
                 if (!copy.getIsRootNode()) {
-                    left = doLeafNodeSearch(copy.doSmallestKeyRetrieval() - 1);
+                    left = searchLeafNode(copy.retrieveSmallestKey() - 1);
                 }
             }
 
             left.setNextNode(leafNode.getNextNode());
 
-            leafNode.doNodeDeletion();
-            noOfNodesDeleted++;
+            leafNode.deleteNode();
+            numDeletedNodes++;
         }
 
         doParentNodeCleaning(copy);
     }
 
     /**
-     * doParentNodeCleaning(InternalNode parent): for parent nodes to do rebalancing
-     * or merging of child nodes
-     * to maintain the B+ tree's properties.
-     * 
-     * If parent is the root node:
-     * If it has at least two children:
-     * Resets the parent node by removing the first child and inserting it back,
-     * which will update the parent's smallest key.
-     * If it has only one child:
-     * Set the child as the new root of the tree and deletes the old root node.
-     * Incrementing the noOfNodeDeleted.
-     * Decrementing the noOfLevels.
-     * If parent is NOT the root node:
-     * Determines the number of keys required in the node to satisfy the minimum
-     * number of internal keys required.
-     * Checks the excess number of keys in the node's left and right sibling nodes.
-     * If there are enough excess keys:
-     * borrow the required number of keys from the left or right sibling node and
-     * updates the parent's keys.
-     * If there are not enough excess keys:
-     * Merge the node with its left or right sibling node and updates the parent's
-     * keys accordingly.
-     * After merging, delete the node and remove parent node by calling
-     * doNodeDeletion().
-     * Increment noOfNodesDeleted.
-     * 
-     * The function recursively calls itself with the parent node that was
-     * duplicated during the cleaning operation to
-     * perform cleaning operations on the parent's parent node, if necessary.
-     */
-    public void doParentNodeCleaning(InternalNode parent) {
+     doParentNodeCleaning(InternalNode parent): for parent nodes to do rebalancing or merging of child nodes
+     to maintain the B+ tree's properties.
+
+    If parent is the root node:
+        If it has at least two children:
+            Resets the parent node by removing the first child and inserting it back,
+            which will update the parent's smallest key.
+        If it has only one child:
+            Set the child as the new root of the tree and deletes the old root node.
+            Incrementing the noOfNodeDeleted.
+            Decrementing the numLevels.
+     If parent is NOT the root node:
+        Determines the number of keys required in the node to satisfy the minimum number of internal keys required.
+        Checks the excess number of keys in the node's left and right sibling nodes.
+        If there are enough excess keys:
+            borrow the required number of keys from the left or right sibling node and updates the parent's keys.
+        If there are not enough excess keys:
+            Merge the node with its left or right sibling node and updates the parent's keys accordingly.
+            After merging, delete the node and remove parent node by calling deleteNode().
+            Increment numDeletedNodes.
+
+    The function recursively calls itself with the parent node that was duplicated during the cleaning operation to
+    perform cleaning operations on the parent's parent node, if necessary.
+    */
+     public void doParentNodeCleaning(InternalNode parent) {
         if (parent.getIsRootNode()) {
 
             if (parent.getChildNodes().size() > 1) {
                 Node child = parent.getChildNode(0);
-                parent.doChildNodeDeletion(child);
-                parent.doChildInsertion(child);
+                parent.deleteChildNode(child);
+                parent.insertChild(child);
                 return;
             } else {
                 root = parent.getChildNode(0);
                 parent.getChildNode(0).setIsRootNode(true);
-                parent.doNodeDeletion();
-                noOfNodesDeleted++;
-                noOfLevels--;
+                parent.deleteNode();
+                numDeletedNodes++;
+                numLevels--;
                 return;
             }
         }
 
-        int required = minNoOfInternalKeys - parent.getKeys().size();
+        int required = minInternalKeys - parent.getKeys().size();
         int leftExcess = 0;
         int rightExcess = 0;
 
@@ -583,23 +412,23 @@ public class BPTree {
         InternalNode duplicate;
 
         if (leftSiblingNode != null)
-            leftExcess += leftSiblingNode.getKeys().size() - minNoOfInternalKeys;
+            leftExcess += leftSiblingNode.getKeys().size() - minInternalKeys;
 
         if (rightSiblingNode != null)
-            rightExcess += rightSiblingNode.getKeys().size() - minNoOfInternalKeys;
+            rightExcess += rightSiblingNode.getKeys().size() - minInternalKeys;
 
         if (required <= leftExcess + rightExcess) {
             if (leftSiblingNode != null) {
                 for (int i = 0; i < required; i++) {
                     parent.insertChildToFront(leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
-                    leftSiblingNode.doChildNodeDeletion(
+                    leftSiblingNode.deleteChildNode(
                             leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
                 }
 
             } else {
                 for (int i = 0; i < required; i++) {
-                    parent.doChildInsertion(rightSiblingNode.getChildNode(0));
-                    rightSiblingNode.doChildNodeDeletion(rightSiblingNode.getChildNode(0));
+                    parent.insertChild(rightSiblingNode.getChildNode(0));
+                    rightSiblingNode.deleteChildNode(rightSiblingNode.getChildNode(0));
                 }
             }
             duplicate = parent.getInternalNode();
@@ -609,14 +438,14 @@ public class BPTree {
             // If there is vacancy for right node
             if (leftSiblingNode == null) {
                 for (int i = 0; i < parent.getChildNodes().size(); i++) {
-                    rightSiblingNode.doChildInsertion(parent.getChildNode(i));
+                    rightSiblingNode.insertChild(parent.getChildNode(i));
                 }
             }
 
             // If there is vacancy for left node
             else {
                 for (int i = 0; i < parent.getChildNodes().size(); i++) {
-                    leftSiblingNode.doChildInsertion(parent.getChildNode(i));
+                    leftSiblingNode.insertChild(parent.getChildNode(i));
                 }
             }
 
@@ -624,8 +453,8 @@ public class BPTree {
             duplicate = parent.getInternalNode();
 
             // removes the parent node
-            parent.doNodeDeletion();
-            noOfNodesDeleted++;
+            parent.deleteNode();
+            numDeletedNodes++;
         }
         doParentNodeCleaning(duplicate);
     }
@@ -633,9 +462,9 @@ public class BPTree {
     // Code for Experiment 2
     public void showExperiment2() {
 
-        System.out.println("The parameter n of the B+ tree: " + this.maxNoOfKeys);
-        System.out.println("The No of nodes of the B+ tree: " + this.noOfNodes);
-        System.out.println("The No of levels of the B+ tree: " + this.noOfLevels);
+        System.out.println("The parameter n of the B+ tree: " + this.maxKeys);
+        System.out.println("The No of nodes of the B+ tree: " + this.numNodes);
+        System.out.println("The No of levels of the B+ tree: " + this.numLevels);
         System.out.println("The content of the root node (only the keys): ");
         InternalNode rootDuplicate = (InternalNode) root; // to get the root node
         System.out.println(rootDuplicate.getKeys().toString());
