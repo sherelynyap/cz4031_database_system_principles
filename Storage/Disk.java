@@ -169,7 +169,7 @@ public class Disk {
             int count = 0;
 
             for (Record record : records) {
-                if (record != null && record.FG_PCT_home <= 0.35) {
+                if (record != null && record.FG_PCT_home <= upperBound) {
                     Address address = new Address(blockID, count);
                     addressList.add(address);
                 }
@@ -178,7 +178,6 @@ public class Disk {
         }
 
         deleteRecord(addressList);
-        System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
-        //System.out.printf("Total no of data block accessed to delete a record (brute-force linear scan method): %d\n", disk.getCurrentBlkAccess());
+        System.out.printf("Total no of data block accessed to delete a record (brute-force linear scan method): %d\n", blockAccess);
     }
 }
