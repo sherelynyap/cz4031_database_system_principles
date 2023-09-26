@@ -49,8 +49,8 @@ public class Main implements Config {
         while ((line = reader.readLine()) != null) {
             fields = line.split("\\t");
 
-            //Ignore empty fields
-            if (fields[2].isEmpty()){
+            // Ignore empty fields
+            if (fields[2].isEmpty()) {
                 continue;
             }
 
@@ -110,11 +110,11 @@ public class Main implements Config {
         System.out.println("\nRunning Experiment 3...");
 
         long startTime = System.nanoTime();
-        ArrayList<Address> dataAddress = BpTree.showExperiment3((float)0.5); 
+        ArrayList<Address> dataAddress = BpTree.showExperiment3((float) 0.5);
         ArrayList<Record> records = disk.getRecords(dataAddress); // To store all the records fit the condition above
 
         long runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the retrieval process: " + runtime/1000000 + " ms");
+        System.out.println("The running time of the retrieval process: " + runtime / 1000000 + " ms");
 
         double total_FG3 = 0;
         for (Record r : records) {
@@ -128,14 +128,16 @@ public class Main implements Config {
         records = disk.linearScan((float) 0.5);
 
         runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the retrieval process (brute-force linear scan method): " + runtime/1000000 + " ms");
+        System.out.println("The running time of the retrieval process (brute-force linear scan method): "
+                + runtime / 1000000 + " ms");
 
         total_FG3 = 0;
         for (Record r : records) {
             total_FG3 += r.FG3_PCT_home;
         }
 
-        System.out.println("For records with FG_PCT_home = 0.5, average FG3_PCT_home (brute-force linear scan method): " + total_FG3 / records.size());
+        System.out.println("For records with FG_PCT_home = 0.5, average FG_PCT_home (brute-force linear scan method): "
+                + total_FG3 / records.size());
 
     }
 
@@ -143,7 +145,7 @@ public class Main implements Config {
         System.out.println("\nRunning Experiment 4...");
 
         long startingTime = System.nanoTime();
-        ArrayList<Address> addressResult = BpTree.doRangeRecordsRetrieval1(0.6f, 1.0f);
+        ArrayList<Address> addressResult = BpTree.doRangeRecordsRetrieval(0.6f, 1.0f);
         ArrayList<Record> recordResult = disk.getRecords(addressResult);
 
         long totalRuntime = System.nanoTime() - startingTime;
@@ -156,13 +158,14 @@ public class Main implements Config {
 
         averageVal /= recordResult.size();
 
-        System.out.println("The average rating of the records where FG3_PCT_home from 0.6 - 1 is " + averageVal);
+        System.out.println("The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 is " + averageVal);
 
         startingTime = System.nanoTime();
         recordResult = disk.linearScan(0.6f, 1.0f);
         totalRuntime = System.nanoTime() - startingTime;
         System.out.println("The running time of the retrieval process (brute-forcelinear scan method) is "
                 + totalRuntime / 1000000 + " ms");
+
         averageVal = 0;
         for (Record r : recordResult) {
             averageVal += r.FG3_PCT_home;
@@ -171,25 +174,44 @@ public class Main implements Config {
         averageVal /= recordResult.size(); // total rating divide by the size of the arraylist to get the average
 
         System.out.println(
-                "The average rating of the records where FG3_PCT_home from 0.6 - 1 using (brute-force linear scan method) is "
+                "The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 using (brute-force linear scan method) is "
                         + averageVal + "\n");
 
     }
 
-    public void runExperiment5() {
+    public void runExperiment55() throws Exception {
+
+        System.out.println("\nRunning Experiment 5...");
+        System.out.println();
+        ArrayList<Address> addressResult = BpTree.doRangeRecordsRetrieval(0f, 0.35f);
+        ArrayList<Record> recordResult = disk.getRecords(addressResult);
+        BpTree.showExperiment2();
+        long startTime = System.nanoTime();
+        for (Record r : recordResult) {
+            disk.deleteRecord(BpTree.KeyRemoval(r.FG3_PCT_home));
+            // System.out.println(r.FG3_PCT_home);
+        }
+
+        // ArrayList<Address> addressResult = BpTree.doRangeRecordsDeletion(0f,0.35f);
+        long runtime = System.nanoTime() - startTime;
+        System.out.println("The running time of the deletion process is " + runtime / 1000000 + " ms");
+        BpTree.showExperiment2();
+    }
+
+    public void runExperiment5() throws Exception {
         System.out.println("\nRunning Experiment 5...");
         System.out.println();
         System.out.println("B+ tree");
         System.out.println("------------------------------------------------------------------");
         long startTime = System.nanoTime();
-        disk.doRecordDeletion(BpTree.doKeyRemoval(1000));
+        disk.deleteRecord(BpTree.KeyRemoval(0.435f));
         long runtime = System.nanoTime() - startTime;
         System.out.println("The running time of the deletion process is " + runtime / 1000000 + " ms");
         BpTree.showExperiment2();
 
         startTime = System.nanoTime();
-        LinearScan ls = new LinearScan();
-        ls.doLinearScanDeletion(1000, disk);
+        // LinearScan ls = new LinearScan();
+        // ls.doLinearScanDeletion(1000, disk);
         runtime = System.nanoTime() - startTime;
         System.out.println("The running time of the deletion process is (brute-force linear scan method) "
                 + runtime / 1000000 + " ms");
@@ -252,7 +274,7 @@ public class Main implements Config {
                         runExperiment4();
                         break;
                     case "5":
-                        runExperiment5();
+                        runExperiment55();
                         break;
                 }
 
@@ -270,5 +292,5 @@ public class Main implements Config {
             e.printStackTrace();
         }
     }
-    
+
 }
