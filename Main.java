@@ -3,7 +3,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
-import BPlusTree.BPTree;
+import Index.BPTree;
 
 import Storage.Disk;
 import Storage.Address;

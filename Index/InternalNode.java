@@ -1,4 +1,4 @@
-package BPlusTree;
+package Index;
 
 import java.util.ArrayList;
 
