@@ -31,7 +31,6 @@ public class BPTree {
         root.setIsRootNode(true);
 
         numNodes = 0;
-        numDeletedNodes = 0;
     }
 
     public void insert(float key, Address address) {
@@ -230,26 +229,29 @@ public class BPTree {
      * from the total number of nodes.
      * 6) Returns the list of addresses associated with the removed key.
      */
-    public ArrayList<Address> removeKey(float key) {
+    public ArrayList<Address> removeKey(float lowerBound, float upperBound) {
         // (1)
+        ArrayList<Address> addressOfRecordsToDelete = new ArrayList<>();
         ArrayList<Float> keys;
         LeafNode leafNode;
 
         // (2)
-        ArrayList<Address> returnAddressListToDelete = doRecordsWithKeysRetrieval(key, false);
+        ArrayList<Float> keyOfRecordsToDelete = doRangeKeysRetrieval(lowerBound, upperBound);
 
         // (3)
-        int length = returnAddressListToDelete.size();
+        int length = keyOfRecordsToDelete.size();
 
         // (4)
         for (int j = 0; j < length; j++) {
             // Locate potential leafNode
+            float key = keyOfRecordsToDelete.get(j);
             leafNode = searchLeafNode(key);
             keys = leafNode.getKeys();
 
             // Check the candidate leafNode
             for (int i = 0; i < keys.size(); i++) {
                 if (Float.compare(keys.get(i), key) == 0) {
+                    addressOfRecordsToDelete.add(leafNode.getAddress(i));
                     leafNode.deleteAddress(i);
                     if (!leafNode.getIsRootNode()) {
                         LeafCleaning(leafNode);
@@ -259,11 +261,8 @@ public class BPTree {
             }
         }
 
-        // (5)
-        numNodes -= numDeletedNodes;
-
         // (6)
-        return returnAddressListToDelete;
+        return addressOfRecordsToDelete;
     }
 
     /**
@@ -361,7 +360,7 @@ public class BPTree {
             left.setNextNode(leafNode.getNextNode());
 
             leafNode.deleteNode();
-            numDeletedNodes++;
+            numNodes--;
         }
 
         ParentNodeCleaning(copy);
@@ -410,7 +409,7 @@ public class BPTree {
                 root = parent.getChildNode(0);
                 parent.getChildNode(0).setIsRootNode(true);
                 parent.deleteNode();
-                numDeletedNodes++;
+                numNodes--;
                 numLevels--;
                 return;
             }
@@ -467,13 +466,13 @@ public class BPTree {
 
             // removes the parent node
             parent.deleteNode();
-            numDeletedNodes++;
+            numNodes--;
         }
         ParentNodeCleaning(duplicate);
     }
 
     
-    private ArrayList<Integer> doRangeKeysRetrieval(float lowerBound, float upperBound) {
+    private ArrayList<Float> doRangeKeysRetrieval(float lowerBound, float upperBound) {
         ArrayList<Float> result = new ArrayList<>();
         Node currNode = root;
         InternalNode internalNode;
@@ -497,7 +496,7 @@ public class BPTree {
         // compare the keys in the leaf node and the searching key
         while (!finish && curr != null) {
             for (int i = 0; i < curr.getKeys().size(); i++) {
-                if (curr.getKey(i) <= upperBound && Float.compare(curr.getKey(i), lowerBound) <= 0) {
+                if (curr.getKey(i) <= upperBound && Float.compare(lowerBound, curr.getKey(i)) <= 0) {
                     result.add(curr.getKey(i));
                     continue;
                 }
@@ -516,7 +515,7 @@ public class BPTree {
                 }
             }
         }
-
+        
         return result;
     }
 
@@ -747,73 +746,6 @@ public class BPTree {
         System.out.printf("Total no of index nodes accesses: %d\n", totalBlockAccessed);
         System.out.printf("Total no of data block accesses: %d\n", numDataBlockAccessed);
 
-        return addressResult;
-    }
-
-    public ArrayList<Address> doRangeRecordsDeletion(float lowBound, float highBound) {
-
-        ArrayList<Address> addressResult = new ArrayList<>();
-        int totalBlockAccessed = 1;
-        InternalNode tempIntNode;
-        Node thisNode = root;
-
-        while (thisNode.getIsLeafNode() == false) {
-            tempIntNode = (InternalNode) thisNode;
-            int numKeys = tempIntNode.getKeys().size();
-            int lastIndex = numKeys - 1;
-            for (int ptr = 0; ptr < numKeys; ptr++) {
-                if (tempIntNode.getKey(ptr) >= lowBound) {
-                    // If Key >= lowBound, get this child and break
-                    totalBlockAccessed += 1;
-                    thisNode = tempIntNode.getChildNode(ptr);
-                    break;
-                }
-
-                if (ptr == lastIndex) {
-                    // If reach end of searching key, just get the child node of the Most Right
-                    int target = lastIndex + 1;
-                    totalBlockAccessed += 1;
-                    thisNode = tempIntNode.getChildNode(target);
-                    break;
-                }
-            }
-        }
-        // Reach Leaf Node, find all records with key that satisfy requirement
-        LeafNode currentLeafNode = (LeafNode) thisNode;
-        boolean end = false;
-        while (end == false && currentLeafNode != null) {
-            for (int ptr = 0; ptr < currentLeafNode.getKeys().size(); ptr++) {
-                // When found valid key, add into addressResult list
-                float targetKey = currentLeafNode.getKey(ptr);
-                /* float targetKey = currentLeafNode.getKey(ptr); */
-                if (targetKey <= highBound && currentLeafNode.getKey(ptr) >= lowBound) {
-                    Address targetAddress = currentLeafNode.getAddress(ptr);
-                    addressResult.add(targetAddress);
-
-                    continue;
-                }
-                // if curKey > searching key, stop searching and exit
-                if (targetKey > highBound) {
-                    end = true;
-                    break;
-                }
-            }
-            if (end == false) {
-                // Check sibling node has remaining records of valid Keys
-                if (currentLeafNode.getNextNode() == null) {
-                    break;
-                } else {
-                    totalBlockAccessed += 1;
-                    currentLeafNode = (LeafNode) currentLeafNode.getNextNode();
-                }
-            }
-        }
-
-        System.out.println();
-        System.out.println("B+ tree");
-        System.out.println("------------------------------------------------------------------");
-        System.out.printf("Total no of index nodes accesses: %d\n", totalBlockAccessed);
-        System.out.printf("Total no of data block accesses: %d\n", addressResult.size() + totalBlockAccessed);
         return addressResult;
     }
 

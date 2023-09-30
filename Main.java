@@ -235,16 +235,12 @@ public class Main {
         
         // Normal deletion
         long startTime = System.nanoTime();
-        ArrayList<Address> addressResult = index.doRangeRecordsRetrievalnoDuplicate(0f, 0.35f);
-        ArrayList<Record> recordResult = disk.getRecords(addressResult);
         
         // temp function//
         int iniSize = disk.getRecordCount();
         // end of temp function//
 
-        for (Record r : recordResult) {
-            disk.deleteRecord(index.removeKey(r.FG_PCT_home));
-        }
+        disk.deleteRecord(index.removeKey(0f, 0.35f));
         long runtime = System.nanoTime() - startTime;
 
         // temp function//
