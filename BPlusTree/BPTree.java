@@ -65,9 +65,7 @@ public class BPTree {
                 // continue loop with child node
                 internalNode = (InternalNode) child;
             }
-
         }
-
     }
 
     /**
@@ -75,16 +73,11 @@ public class BPTree {
      * key-value pair into a leaf node in a B+ tree.
      */
     public void insertLeafNode(LeafNode leafNode, float key, Address address) {
-        try {
             if (leafNode.getKeys().size() >= maxKeys) {
                 splitLeafNode(leafNode, key, address);
             } else {
                 leafNode.setAddress(key, address);
             }
-        } catch (Error e) {
-            System.out.println(e.getMessage());
-        }
-
     }
 
     /**
@@ -93,7 +86,6 @@ public class BPTree {
      * 
      */
     public void splitLeafNode(LeafNode prevLeaf, float key, Address address) {
-
         Address addresses[] = new Address[maxKeys + 1];
         float keys[] = new float[maxKeys + 1];
         LeafNode newLeaf = new LeafNode();
@@ -157,7 +149,6 @@ public class BPTree {
      * (i.e. contains the max num of keys) and insert a new child node.
      */
     public void separateParentNode(InternalNode parentNode, Node childNode) {
-
         Node childNodes[] = new Node[maxKeys + 2];
         float keys[] = new float[maxKeys + 2];
         float key = childNode.retrieveSmallestKey();
@@ -471,7 +462,6 @@ public class BPTree {
         ParentNodeCleaning(duplicate);
     }
 
-    
     private ArrayList<Float> doRangeKeysRetrieval(float lowerBound, float upperBound) {
         ArrayList<Float> result = new ArrayList<>();
         Node currNode = root;

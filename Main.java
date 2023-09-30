@@ -158,7 +158,7 @@ public class Main {
         //Normal Query
         long startTime = System.nanoTime();
         ArrayList<Address> dataAddress = index.doRecordsWithKeysRetrieval(0.5f);
-        ArrayList<Record> records = disk.getRecords(dataAddress); // To store all the records fit the condition above
+        ArrayList<Record> records = disk.getRecords(dataAddress);
         long runtime = System.nanoTime() - startTime;
 
         System.out.println("The running time of the retrieval process: " + runtime / 1000000 + " ms");
@@ -195,14 +195,14 @@ public class Main {
 
         System.out.println("The running time of the retrieval process is " + totalRuntime / 1000000 + " ms");
 
-        float averageVal = 0;
+        float total_FG3 = 0;
         for (Record record : records) {
-            averageVal += record.FG3_PCT_home;
+            total_FG3 += record.FG3_PCT_home;
         }
 
-        averageVal /= records.size();
+        total_FG3 /= records.size();
 
-        System.out.println("The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 is " + averageVal);
+        System.out.println("The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 is " + total_FG3);
 
         // Brute Force Linear Scan
         startingTime = System.nanoTime();
@@ -211,16 +211,16 @@ public class Main {
         System.out.println("The running time of the retrieval process (brute-forcelinear scan method) is "
                 + totalRuntime / 1000000 + " ms");
 
-        averageVal = 0;
+        total_FG3 = 0;
         for (Record record : records) {
-            averageVal += record.FG3_PCT_home;
+            total_FG3 += record.FG3_PCT_home;
         }
 
-        averageVal /= records.size();
+        total_FG3 /= records.size();
 
         System.out.println(
                 "The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 using (brute-force linear scan method) is "
-                        + averageVal + "\n");
+                        + total_FG3 + "\n");
     }
 
     public void experiment5() throws Exception {
