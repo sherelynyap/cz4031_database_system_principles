@@ -86,8 +86,7 @@ public class Main {
             index.insert(row.FG_PCT_home, address);
         }
 
-        System.out.println(
-                "Database and B+ tree index created successfully.");
+        System.out.println("Database and B+ tree index created successfully.");
         System.out.println();
     }
 
@@ -235,34 +234,17 @@ public class Main {
         
         // Normal deletion
         long startTime = System.nanoTime();
-        
-        // temp function//
-        int iniSize = disk.getRecordCount();
-        // end of temp function//
-
         disk.deleteRecord(index.removeKey(0f, 0.35f));
         long runtime = System.nanoTime() - startTime;
-
-        // temp function//
-        iniSize -= disk.getRecordCount();
-        System.out.println("Size of deleted records:" + iniSize);
-        // end of temp function//
 
         System.out.println("The running time of the deletion process is " + runtime / 1000000 + " ms");
         index.printInfo();
 
         // Brute force deletion
-        // temp function//
-        iniSize = tempDisk.getRecordCount();
-        // end of temp function//
-
         startTime = System.nanoTime();
         tempDisk.linearScanDeletion(0.35f);
         runtime = System.nanoTime() - startTime;
-        // temp function//
-        iniSize -= tempDisk.getRecordCount();
-        System.out.println("Size of deleted records:" + iniSize);
-        // end of temp function//
+        
         System.out.println("The running time of the deletion process is (brute-force linear scan method) "
                 + runtime / 1000000 + " ms");
     }

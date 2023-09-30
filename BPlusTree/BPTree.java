@@ -567,11 +567,9 @@ public class BPTree {
      * Returns result array list containing the addresses of all records with the
      * same key.
      */
-    private ArrayList<Address> doRecordsWithKeysRetrieval(float searchingKey) {
+    public ArrayList<Address> doRecordsWithKeysRetrieval(float searchingKey) {
         ArrayList<Address> result = new ArrayList<>();
         int blockAccess = 1;
-        int siblingAccess = 0;
-        ArrayList<Address> recordsAddressList = new ArrayList<>();
         Node currNode = root;
         InternalNode internalNode;
 
@@ -611,7 +609,6 @@ public class BPTree {
                 if (curr.getNextNode() != null) {
                     curr = curr.getNextNode();
                     blockAccess++;
-                    siblingAccess++;
                 } else {
                     break;
                 }
