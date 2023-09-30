@@ -259,7 +259,7 @@ public class Main implements Config {
                         runExperiment4();
                         break;
                     case "5":
-                        runExperiment55();
+                        runExperiment5();
                         break;
                 }
 
