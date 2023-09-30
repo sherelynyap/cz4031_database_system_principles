@@ -36,7 +36,7 @@ public class Main {
 
     public static List<Record> doRecordReading(String directory) throws Exception {
         File dataFile = new File(directory);
-        System.out.println("Reading records from " + directory + " ...");
+        System.out.println("Reading records from " + directory + "...");
 
         String line;
         String[] fields = null;
@@ -67,10 +67,9 @@ public class Main {
                     AST_home, REB_home, HOME_TEAM_WINS);
             records.add(record);
         }
-
         reader.close();
 
-        System.out.println("Total number of records inserted: " + records.size());
+        System.out.println("Inserted records from " + directory + " successfully.");
         return records;
     }
 
@@ -214,7 +213,7 @@ public class Main {
                 + runtime / 1000000 + " ms");
     }
 
-    public void printBTree() {
+    public void printBPTree() {
         index.printTree();
     }
 
@@ -235,7 +234,7 @@ public class Main {
             System.out.println(
                     "Experiment (5): Delete movies with the attribute “numVotes” equal to 1,000 and its required statistics.");
             System.out.println(
-                    "Misc: Print B+Tree.");
+                    "Misc (6): Print B+ Tree.");
             System.out.println("           (exit): Exit ");
             System.out.println(
                     "======================================================================================");
@@ -259,7 +258,7 @@ public class Main {
                     runExperiment5();
                     break;
                 case "6":
-                    printBTree();
+                    printBPTree();
                     break;
             }
 

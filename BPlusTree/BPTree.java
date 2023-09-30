@@ -32,12 +32,6 @@ public class BPTree {
 
         numNodes = 0;
         numDeletedNodes = 0;
-
-        System.out.println("Block Size: " + blkSize + "B");
-        System.out.println("Max no. of keys in a node: " + maxKeys);
-        System.out.println("Min no. of keys in an internal node: " + minInternalKeys);
-        System.out.println("Min no. of keys in a leaf node: " + minLeafKeys);
-        System.out.println();
     }
 
     public void insert(float key, Address address) {
@@ -477,16 +471,6 @@ public class BPTree {
         ParentNodeCleaning(duplicate);
     }
 
-    // Print detail of BPTree
-    public void printDetail() {
-        System.out.println("The parameter n of the B+ tree: " + this.maxKeys);
-        System.out.println("The No of nodes of the B+ tree: " + this.numNodes);
-        System.out.println("The No of levels of the B+ tree: " + this.numLevels);
-        System.out.println("The content of the root node (only the keys): ");
-        InternalNode rootDuplicate = (InternalNode) root; // to get the root node
-        System.out.println(rootDuplicate.getKeys().toString());
-    }
-
     public ArrayList<Address> showExperiment3(float searchingKey) {
         return doRecordsWithKeysRetrieval(searchingKey, true);
     }
@@ -782,6 +766,17 @@ public class BPTree {
         return addressResult;
     }
 
+    // Print detail of BPTree
+    public void printDetail() {
+        System.out.println("The parameter n of the B+ tree: " + this.maxKeys);
+        System.out.println("The No of nodes of the B+ tree: " + this.numNodes);
+        System.out.println("The No of levels of the B+ tree: " + this.numLevels);
+        System.out.println("The content of the root node (only the keys): ");
+        InternalNode rootDuplicate = (InternalNode) root; // to get the root node
+        System.out.println(rootDuplicate.getKeys().toString());
+    }
+
+    // Print Structure of BPTree
     public void printTree() {
         System.out.println("#### Printing Tree ####");
 
