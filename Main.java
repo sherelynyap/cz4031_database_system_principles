@@ -92,7 +92,6 @@ public class Main {
     }
 
     public void runExperiment1() {
-        System.out.println("\nRunning Experiment 1...");
         System.out.println("Number of records: " + disk.getRecordCount());
         System.out.println("Size of a record: " + Record.size);
         System.out.println("Number of records stored in a block: " + Block.maxRecordCount);
@@ -100,13 +99,10 @@ public class Main {
     }
 
     public void runExperiment2() {
-        System.out.println("\nRunning Experiment 2...");
         index.printDetail();
     }
 
     public void runExperiment3() throws Exception {
-        System.out.println("\nRunning Experiment 3...");
-
         long startTime = System.nanoTime();
         ArrayList<Address> dataAddress = index.showExperiment3((float) 0.5);
 
@@ -141,49 +137,53 @@ public class Main {
     }
 
     public void runExperiment4() throws Exception {
-        System.out.println("\nRunning Experiment 4...");
-        float lowBound = 0.0f;
-        float highBound = 0.655f;
-
+        // Normal query
         long startingTime = System.nanoTime();
-        ArrayList<Address> addressResult = index.doRangeRecordsRetrieval(lowBound, highBound);
-        ArrayList<Record> recordResult = disk.getRecords(addressResult);
-
+        ArrayList<Address> addressList = index.doRangeRecordsRetrieval(0.6f, 1.0f);
+        ArrayList<Record> records = disk.getRecords(addressList);
         long totalRuntime = System.nanoTime() - startingTime;
+
         System.out.println("The running time of the retrieval process is " + totalRuntime / 1000000 + " ms");
 
         float averageVal = 0;
-        for (Record r : recordResult) {
-            System.out.println(r.FG_PCT_home);
-            averageVal += r.FG3_PCT_home;
+        for (Record record : records) {
+            System.out.println(record.FG_PCT_home);
+            averageVal += record.FG3_PCT_home;
         }
 
-        averageVal /= recordResult.size();
+        averageVal /= records.size();
 
         System.out.println("The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 is " + averageVal);
 
+        // Brute Force Linear Scan
         startingTime = System.nanoTime();
-        recordResult = disk.linearScan(lowBound, highBound);
+        records = disk.linearScan(0.6f, 1.0f);
         totalRuntime = System.nanoTime() - startingTime;
         System.out.println("The running time of the retrieval process (brute-forcelinear scan method) is "
                 + totalRuntime / 1000000 + " ms");
 
         averageVal = 0;
-        for (Record r : recordResult) {
-            averageVal += r.FG3_PCT_home;
+        for (Record record : records) {
+            averageVal += record.FG3_PCT_home;
         }
 
-        averageVal /= recordResult.size(); // total rating divide by the size of the arraylist to get the average
+        averageVal /= records.size(); // total rating divide by the size of the arraylist to get the average
 
         System.out.println(
                 "The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 using (brute-force linear scan method) is "
                         + averageVal + "\n");
-
     }
 
     public void runExperiment5() throws Exception {
-        System.out.println("\nRunning Experiment 5...");
-        System.out.println();
+        // Create a copy of disk to perform linear scan
+        Disk tempDisk = new Disk();
+        List<Record> rows = doRecordReading(Config.DATA_FILE_PATH);
+
+        for (Record row : rows) {
+            tempDisk.insertRecord(row);
+        }
+        
+        // Normal deletion
         ArrayList<Address> addressResult = index.doRangeRecordsRetrievalnoDuplicate(0f, 0.35f);
         ArrayList<Record> recordResult = disk.getRecords(addressResult);
         
@@ -196,14 +196,7 @@ public class Main {
         System.out.println("The running time of the deletion process is " + runtime / 1000000 + " ms");
         index.printDetail();
 
-        // Create a copy of disk to perform linear scan
-        Disk tempDisk = new Disk();
-        List<Record> rows = doRecordReading(Config.DATA_FILE_PATH);
-
-        for (Record row : rows) {
-            tempDisk.insertRecord(row);
-        }
-
+        // Brute force deletion
         startTime = System.nanoTime();
         tempDisk.linearScanDeletion(0.35f);
         runtime = System.nanoTime() - startTime;
@@ -222,7 +215,7 @@ public class Main {
         do {
             System.out.println(
                     "======================================================================================");
-            System.out.println("Which options would you like to select?");
+            System.out.println("Which option would you like to select?");
             System.out.println("(1): Experiment 1");
             System.out.println("(2): Experiment 2");
             System.out.println("(3): Experiment 3");
@@ -232,7 +225,7 @@ public class Main {
             System.out.println("(7): Exit");
             System.out.println(
                     "======================================================================================");
-            System.out.print("Selection: ");
+            System.out.print("Your option (Type the number of the option): ");
 
             input = sc.nextLine();
             switch (input) {
@@ -257,7 +250,6 @@ public class Main {
                 default:
                     break;
             }
-
         } while (input != "7");
 
         sc.close();
