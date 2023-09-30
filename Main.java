@@ -1,4 +1,3 @@
-import java.text.DecimalFormat;
 import java.util.*;
 
 import BPlusTree.BPTree;
@@ -9,9 +8,7 @@ import Storage.Record;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 
 import Config.Config;
 
@@ -19,6 +16,7 @@ public class Main {
     private Disk disk;
     private BPTree index;
 
+    // Date parser to return a date with fixed format DDMMYYYY
     public static String parseDate(String date) {
         String[] dateParts = date.split("/");
 
@@ -219,28 +217,24 @@ public class Main {
 
     public void displayMenu() throws Exception {
         String input;
+        Scanner sc = new Scanner(System.in);
+
         do {
             System.out.println(
                     "======================================================================================");
-            System.out.println("Which experiment would you like to run?");
-            System.out.println(
-                    "Experiment (1): Print No. of Records, Size of a Record, No. of Records stored in a Block, and No. of Blocks for storing data.");
-            System.out.println(
-                    "Experiment (2): Print the B+ Tree's parameter n value, No. of Nodes, No. of Levels and Root Node Content.");
-            System.out.println(
-                    "Experiment (3): Retrieve movies with the “numVotes” equal to 500 and its required statistics.");
-            System.out.println(
-                    "Experiment (4): Retrieve movies with votes between 30,000 and 40,000 and its required statistics.");
-            System.out.println(
-                    "Experiment (5): Delete movies with the attribute “numVotes” equal to 1,000 and its required statistics.");
-            System.out.println(
-                    "Misc (6): Print B+ Tree.");
-            System.out.println("           (exit): Exit ");
+            System.out.println("Which options would you like to select?");
+            System.out.println("(1): Experiment 1");
+            System.out.println("(2): Experiment 2");
+            System.out.println("(3): Experiment 3");
+            System.out.println("(4): Experiment 4");
+            System.out.println("(5): Experiment 5");
+            System.out.println("(6): Print B+ Tree");
+            System.out.println("(7): Exit");
             System.out.println(
                     "======================================================================================");
             System.out.print("Selection: ");
-            Scanner in = new Scanner(System.in);
-            input = in.nextLine();
+
+            input = sc.nextLine();
             switch (input) {
                 case "1":
                     runExperiment1();
@@ -260,9 +254,13 @@ public class Main {
                 case "6":
                     printBPTree();
                     break;
+                default:
+                    break;
             }
 
-        } while (!input.equals("exit"));
+        } while (input != "7");
+
+        sc.close();
     }
 
     public static void main(String[] args) {
