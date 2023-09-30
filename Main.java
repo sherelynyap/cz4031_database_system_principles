@@ -162,13 +162,7 @@ public class Main {
         long runtime = System.nanoTime() - startTime;
 
         System.out.println("The running time of the retrieval process: " + runtime / 1000000 + " ms");
-
-        float total_FG3 = 0;
-        for (Record record : records) {
-            total_FG3 += record.FG3_PCT_home;
-        }
-
-        System.out.println("For records with FG_PCT_home = 0.5, average FG3_PCT_home: " + total_FG3 / records.size());
+        System.out.println("For records with FG_PCT_home = 0.5, average FG3_PCT_home: " + calcFG3Avg(records));
 
         // Brute Force Linear Scan
         startTime = System.nanoTime();
@@ -176,14 +170,8 @@ public class Main {
         runtime = System.nanoTime() - startTime;
         System.out.println("The running time of the retrieval process (brute-force linear scan method): "
                 + runtime / 1000000 + " ms");
-
-        total_FG3 = 0;
-        for (Record record : records) {
-            total_FG3 += record.FG3_PCT_home;
-        }
-
         System.out.println("For records with FG_PCT_home = 0.5, average FG_PCT_home (brute-force linear scan method): "
-                + total_FG3 / records.size());
+                + calcFG3Avg(records));
     }
 
     public void experiment4() throws Exception {
@@ -194,15 +182,7 @@ public class Main {
         long totalRuntime = System.nanoTime() - startingTime;
 
         System.out.println("The running time of the retrieval process is " + totalRuntime / 1000000 + " ms");
-
-        float total_FG3 = 0;
-        for (Record record : records) {
-            total_FG3 += record.FG3_PCT_home;
-        }
-
-        total_FG3 /= records.size();
-
-        System.out.println("The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 is " + total_FG3);
+        System.out.println("The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 is " + calcFG3Avg(records));
 
         // Brute Force Linear Scan
         startingTime = System.nanoTime();
@@ -211,16 +191,9 @@ public class Main {
         System.out.println("The running time of the retrieval process (brute-forcelinear scan method) is "
                 + totalRuntime / 1000000 + " ms");
 
-        total_FG3 = 0;
-        for (Record record : records) {
-            total_FG3 += record.FG3_PCT_home;
-        }
-
-        total_FG3 /= records.size();
-
         System.out.println(
                 "The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 using (brute-force linear scan method) is "
-                        + total_FG3 + "\n");
+                        + calcFG3Avg(records) + "\n");
     }
 
     public void experiment5() throws Exception {
@@ -251,6 +224,15 @@ public class Main {
 
     public void printBPTree() {
         index.printTree();
+    }
+
+    public float calcFG3Avg(ArrayList<Record> records){        
+        float total_FG3 = 0;
+        for (Record record : records) {
+            total_FG3 += record.FG3_PCT_home;
+        }
+
+        return total_FG3 / records.size();
     }
 
     public static void pressEnterToContinue() {
