@@ -230,17 +230,16 @@ public class BPTree {
      * from the total number of nodes.
      * 6) Returns the list of addresses associated with the removed key.
      */
-    public ArrayList<Address> KeyRemoval(float key) {
+    public ArrayList<Address> removeKey(float key) {
         // (1)
         ArrayList<Float> keys;
         LeafNode leafNode;
-        ArrayList<Address> addressList = new ArrayList<>();
 
         // (2)
         ArrayList<Address> returnAddressListToDelete = doRecordsWithKeysRetrieval(key, false);
 
         // (3)
-        int length = doRecordsWithKeysRetrieval(key, false).size();
+        int length = returnAddressListToDelete.size();
 
         // (4)
         for (int j = 0; j < length; j++) {
@@ -251,7 +250,6 @@ public class BPTree {
                     leafNode.deleteAddress(i);
                     if (!leafNode.getIsRootNode()) {
                         LeafCleaning(leafNode);
-                        addressList.addAll(leafNode.getAddresses());
                     }
                     break;
                 }
@@ -766,17 +764,17 @@ public class BPTree {
         return addressResult;
     }
 
-    // Print detail of BPTree
-    public void printDetail() {
+    // Print info of BPTree
+    public void printInfo() {
+        InternalNode rootDuplicate = (InternalNode) root;
+
         System.out.println("The parameter n of the B+ tree: " + this.maxKeys);
-        System.out.println("The No of nodes of the B+ tree: " + this.numNodes);
-        System.out.println("The No of levels of the B+ tree: " + this.numLevels);
-        System.out.println("The content of the root node (only the keys): ");
-        InternalNode rootDuplicate = (InternalNode) root; // to get the root node
-        System.out.println(rootDuplicate.getKeys().toString());
+        System.out.println("The number of nodes of the B+ tree: " + this.numNodes);
+        System.out.println("The number of levels of the B+ tree: " + this.numLevels);
+        System.out.println("The content of the root node (only the keys): " + rootDuplicate.getKeys().toString());
     }
 
-    // Print Structure of BPTree
+    // Print structure of BPTree
     public void printTree() {
         System.out.println("#### Printing Tree ####");
 
