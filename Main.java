@@ -15,10 +15,9 @@ import java.io.IOException;
 
 import Config.Config;
 
-// why use interfaces??? wrong!
-public class Main implements Config {
+public class Main {
     private Disk disk;
-    private BPTree BpTree;
+    private BPTree index;
 
     public static String parseDate(String date) {
         String[] dateParts = date.split("/");
@@ -64,32 +63,34 @@ public class Main implements Config {
             int REB_home = Integer.parseInt(fields[7]);
             boolean HOME_TEAM_WINS = fields[8] != "0";
 
-            Record r = new Record(GAME_DATE_EST, TEAM_ID_home, PTS_home, FG_PCT_home, FT_PCT_home, FG3_PCT_home,
+            Record record = new Record(GAME_DATE_EST, TEAM_ID_home, PTS_home, FG_PCT_home, FT_PCT_home, FG3_PCT_home,
                     AST_home, REB_home, HOME_TEAM_WINS);
-            records.add(r);
+            records.add(record);
         }
 
         reader.close();
 
-        System.out.println("Total number of records loaded: " + records.size());
+        System.out.println("Total number of records inserted: " + records.size());
         return records;
     }
 
-    public void doBlockCreation() throws Exception {
-        disk = new Disk();
-        BpTree = new BPTree(400);
-        List<Record> data = doRecordReading(DATA_FILE_PATH);
-
+    public void init() throws Exception {
         System.out.println();
-        System.out.println("Inserting the data into the disk and creating the B+ Tree...");
+        System.out.println("Initializing the database...");
 
-        Address dataAddr;
-        for (Record d : data) {
-            dataAddr = disk.insertRecord(d);
-            BpTree.insert(d.FG_PCT_home, dataAddr);
+        // Initialization
+        disk = new Disk();
+        index = new BPTree(Config.BLOCK_SIZE);
+
+        // Insertion
+        List<Record> rows = doRecordReading(Config.DATA_FILE_PATH);
+        for (Record row : rows) {
+            Address address = disk.insertRecord(row);
+            index.insert(row.FG_PCT_home, address);
         }
+
         System.out.println(
-                "Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
+                "Database and B+ tree index created successfully.");
         System.out.println();
     }
 
@@ -103,14 +104,14 @@ public class Main implements Config {
 
     public void runExperiment2() {
         System.out.println("\nRunning Experiment 2...");
-        BpTree.showExperiment2();
+        index.printDetail();
     }
 
     public void runExperiment3() throws Exception {
         System.out.println("\nRunning Experiment 3...");
 
         long startTime = System.nanoTime();
-        ArrayList<Address> dataAddress = BpTree.showExperiment3((float) 0.5);
+        ArrayList<Address> dataAddress = index.showExperiment3((float) 0.5);
 
         ArrayList<Record> records = disk.getRecords(dataAddress); // To store all the records fit the condition above
 
@@ -148,7 +149,7 @@ public class Main implements Config {
         float highBound = 0.655f;
 
         long startingTime = System.nanoTime();
-        ArrayList<Address> addressResult = BpTree.doRangeRecordsRetrieval(lowBound, highBound);
+        ArrayList<Address> addressResult = index.doRangeRecordsRetrieval(lowBound, highBound);
         ArrayList<Record> recordResult = disk.getRecords(addressResult);
 
         long totalRuntime = System.nanoTime() - startingTime;
@@ -186,23 +187,23 @@ public class Main implements Config {
     public void runExperiment5() throws Exception {
         System.out.println("\nRunning Experiment 5...");
         System.out.println();
-        ArrayList<Address> addressResult = BpTree.doRangeRecordsRetrievalnoDuplicate(0f, 0.35f);
+        ArrayList<Address> addressResult = index.doRangeRecordsRetrievalnoDuplicate(0f, 0.35f);
         ArrayList<Record> recordResult = disk.getRecords(addressResult);
         
         long startTime = System.nanoTime();
         for (Record r : recordResult) {
-            disk.deleteRecord(BpTree.KeyRemoval(r.FG_PCT_home));
+            disk.deleteRecord(index.KeyRemoval(r.FG_PCT_home));
         }
         long runtime = System.nanoTime() - startTime;
 
         System.out.println("The running time of the deletion process is " + runtime / 1000000 + " ms");
-        BpTree.showExperiment2();
+        index.printDetail();
 
         // Create a copy of disk to perform linear scan
         Disk tempDisk = new Disk();
-        List<Record> data = doRecordReading(DATA_FILE_PATH);
+        List<Record> rows = doRecordReading(Config.DATA_FILE_PATH);
 
-        for (Record row : data) {
+        for (Record row : rows) {
             tempDisk.insertRecord(row);
         }
 
@@ -214,88 +215,64 @@ public class Main implements Config {
     }
 
     public void printBTree() {
-        BpTree.printTree();
+        index.printTree();
     }
 
-    public void displayMenu(int type) throws Exception {
-        if (type == 1) {
-            System.out
-                    .println("======================================================================================");
-            System.out.println("            << Welcome to Group 8's DSP Project 1 Implementation >>");
-            System.out.println();
-            System.out.println("What would you like to do?");
-            System.out.println("1) Select an experiment \n2) Exit");
-            System.out
-                    .println("======================================================================================");
-            System.out.print("You have selected: ");
+    public void displayMenu() throws Exception {
+        String input;
+        do {
+            System.out.println(
+                    "======================================================================================");
+            System.out.println("Which experiment would you like to run?");
+            System.out.println(
+                    "Experiment (1): Print No. of Records, Size of a Record, No. of Records stored in a Block, and No. of Blocks for storing data.");
+            System.out.println(
+                    "Experiment (2): Print the B+ Tree's parameter n value, No. of Nodes, No. of Levels and Root Node Content.");
+            System.out.println(
+                    "Experiment (3): Retrieve movies with the “numVotes” equal to 500 and its required statistics.");
+            System.out.println(
+                    "Experiment (4): Retrieve movies with votes between 30,000 and 40,000 and its required statistics.");
+            System.out.println(
+                    "Experiment (5): Delete movies with the attribute “numVotes” equal to 1,000 and its required statistics.");
+            System.out.println(
+                    "Misc: Print B+Tree.");
+            System.out.println("           (exit): Exit ");
+            System.out.println(
+                    "======================================================================================");
+            System.out.print("Selection: ");
             Scanner in = new Scanner(System.in);
-            String input = in.nextLine();
-
+            input = in.nextLine();
             switch (input) {
                 case "1":
-                    doBlockCreation();
+                    runExperiment1();
                     break;
                 case "2":
-                    System.exit(0);
+                    runExperiment2();
+                    break;
+                case "3":
+                    runExperiment3();
+                    break;
+                case "4":
+                    runExperiment4();
+                    break;
+                case "5":
+                    runExperiment5();
+                    break;
+                case "6":
+                    printBTree();
+                    break;
             }
-        } else {
-            String input;
-            do {
-                System.out.println(
-                        "======================================================================================");
-                System.out.println("Which experiment would you like to run?");
-                System.out.println(
-                        "Experiment (1): Store the data on the disk & show No. of Records, Size of a Record, No. of Records stored in a Block, and No. of Blocks for storing data.");
-                System.out.println(
-                        "Experiment (2): Build a B+ tree on the attribute ”numVote” by inserting the records sequentially & show the B+ Tree's parameter n value, No. of Nodes, No. of Levels and Root Node Content.");
-                System.out.println(
-                        "Experiment (3): Retrieve movies with the “numVotes” equal to 500 and its required statistics.");
-                System.out.println(
-                        "Experiment (4): Retrieve movies with votes between 30,000 and 40,000 and its required statistics.");
-                System.out.println(
-                        "Experiment (5): Delete movies with the attribute “numVotes” equal to 1,000 and its required statistics.");
-                System.out.println(
-                        "(6): Print B+Tree.");
-                System.out.println("           (exit): Exit ");
-                System.out.println(
-                        "======================================================================================");
-                System.out.print("Selection: ");
-                Scanner in = new Scanner(System.in);
-                input = in.nextLine();
-                switch (input) {
-                    case "1":
-                        runExperiment1();
-                        break;
-                    case "2":
-                        runExperiment2();
-                        break;
-                    case "3":
-                        runExperiment3();
-                        break;
-                    case "4":
-                        runExperiment4();
-                        break;
-                    case "5":
-                        runExperiment5();
-                        break;
-                    case "6":
-                        printBTree();
-                        break;
-                }
 
-            } while (!input.equals("exit"));
-        }
+        } while (!input.equals("exit"));
     }
 
-    // End of Main Functions
     public static void main(String[] args) {
         try {
-            Main app = new Main();
-            app.displayMenu(1);
-            app.displayMenu(2);
+            Main db = new Main();
+            db.init();
+            db.displayMenu();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 }

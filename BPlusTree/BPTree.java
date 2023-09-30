@@ -477,9 +477,8 @@ public class BPTree {
         ParentNodeCleaning(duplicate);
     }
 
-    // Code for Experiment 2
-    public void showExperiment2() {
-
+    // Print detail of BPTree
+    public void printDetail() {
         System.out.println("The parameter n of the B+ tree: " + this.maxKeys);
         System.out.println("The No of nodes of the B+ tree: " + this.numNodes);
         System.out.println("The No of levels of the B+ tree: " + this.numLevels);
