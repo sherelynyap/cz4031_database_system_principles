@@ -184,25 +184,30 @@ public class Main implements Config {
     }
 
     public void runExperiment5() throws Exception {
-
-        // Copies the disk to do linear scan
-        Disk d = new Disk();
-        d = disk;
-
         System.out.println("\nRunning Experiment 5...");
         System.out.println();
         ArrayList<Address> addressResult = BpTree.doRangeRecordsRetrievalnoDuplicate(0f, 0.35f);
         ArrayList<Record> recordResult = disk.getRecords(addressResult);
+        
         long startTime = System.nanoTime();
         for (Record r : recordResult) {
             disk.deleteRecord(BpTree.KeyRemoval(r.FG_PCT_home));
         }
         long runtime = System.nanoTime() - startTime;
+
         System.out.println("The running time of the deletion process is " + runtime / 1000000 + " ms");
         BpTree.showExperiment2();
 
+        // Create a copy of disk to perform linear scan
+        Disk tempDisk = new Disk();
+        List<Record> data = doRecordReading(DATA_FILE_PATH);
+
+        for (Record row : data) {
+            tempDisk.insertRecord(row);
+        }
+
         startTime = System.nanoTime();
-        d.linearScanDeletion(0.35f);
+        tempDisk.linearScanDeletion(0.35f);
         runtime = System.nanoTime() - startTime;
         System.out.println("The running time of the deletion process is (brute-force linear scan method) "
                 + runtime / 1000000 + " ms");
