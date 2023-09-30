@@ -243,8 +243,11 @@ public class BPTree {
 
         // (4)
         for (int j = 0; j < length; j++) {
+            // Locate potential leafNode
             leafNode = searchLeafNode(key);
             keys = leafNode.getKeys();
+
+            // Check the candidate leafNode
             for (int i = 0; i < keys.size(); i++) {
                 if (Float.compare(keys.get(i), key) == 0) {
                     leafNode.deleteAddress(i);
@@ -469,9 +472,59 @@ public class BPTree {
         ParentNodeCleaning(duplicate);
     }
 
+    
+    private ArrayList<Integer> doRangeKeysRetrieval(float lowerBound, float upperBound) {
+        ArrayList<Float> result = new ArrayList<>();
+        Node currNode = root;
+        InternalNode internalNode;
+
+        while (!currNode.getIsLeafNode()) {
+            internalNode = (InternalNode) currNode;
+            for (int i = 0; i < internalNode.getKeys().size(); i++) {
+                if (Float.compare(lowerBound, internalNode.getKey(i)) <= 0) {
+                    currNode = internalNode.getChildNode(i);
+                    break;
+                }
+                if (i == internalNode.getKeys().size() - 1) {
+                    currNode = internalNode.getChildNode(i + 1);
+                    break;
+                }
+            }
+        }
+        // after leaf node is found, find all records with same key
+        LeafNode curr = (LeafNode) currNode;
+        boolean finish = false;
+        // compare the keys in the leaf node and the searching key
+        while (!finish && curr != null) {
+            for (int i = 0; i < curr.getKeys().size(); i++) {
+                if (curr.getKey(i) <= upperBound && Float.compare(curr.getKey(i), lowerBound) <= 0) {
+                    result.add(curr.getKey(i));
+                    continue;
+                }
+                if (curr.getKey(i) > upperBound) {
+                    finish = true;
+                    break;
+                }
+            }
+            if (!finish) {
+                // check sibling node has remaining records of same key
+                // replace the curr node var with the next node
+                if (curr.getNextNode() != null) {
+                    curr = curr.getNextNode();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
     public ArrayList<Address> showExperiment3(float searchingKey) {
         return doRecordsWithKeysRetrieval(searchingKey, true);
     }
+
+
 
     /**
      * doRecordsWithKeysRetrieval(float searchingKey, boolean isPrint): Search for

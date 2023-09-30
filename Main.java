@@ -225,7 +225,7 @@ public class Main {
     }
 
     public void experiment5() throws Exception {
-        // Create a copy of disk to perform linear scan
+        // Create a deep copy of disk to perform linear scan for comparison
         Disk tempDisk = new Disk();
         List<Record> rows = readDataFile(Config.DATA_FILE_PATH);
 
@@ -234,6 +234,7 @@ public class Main {
         }
         
         // Normal deletion
+        long startTime = System.nanoTime();
         ArrayList<Address> addressResult = index.doRangeRecordsRetrievalnoDuplicate(0f, 0.35f);
         ArrayList<Record> recordResult = disk.getRecords(addressResult);
         
@@ -241,7 +242,6 @@ public class Main {
         int iniSize = disk.getRecordCount();
         // end of temp function//
 
-        long startTime = System.nanoTime();
         for (Record r : recordResult) {
             disk.deleteRecord(index.removeKey(r.FG_PCT_home));
         }
