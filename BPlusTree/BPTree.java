@@ -20,7 +20,8 @@ public class BPTree {
 
     public BPTree(int blkSize) {
         // InternalNode_ptr(8B) + isRoot(1B) + isLeaf(1B) + 4n + 8(n+1) <= blkSize
-        maxKeys = (blkSize - 2 * POINTER_SIZE - 2 * BOOL_SIZE) / (POINTER_SIZE + KEY_SIZE);
+        maxKeys = (blkSize - 2 * POINTER_SIZE - 2 * BOOL_SIZE) / (POINTER_SIZE +
+                KEY_SIZE);
         minInternalKeys = (int) Math.floor(maxKeys / 2);
         minLeafKeys = (int) Math.floor((maxKeys + 1) / 2);
 
@@ -110,9 +111,11 @@ public class BPTree {
             addresses[i] = prevLeaf.getAddress(i);
         }
 
+        boolean inserted = false;
         for (i = maxKeys - 1; i >= 0; i--) {
 
             if (Float.compare(keys[i], key) <= 0) {
+                inserted = true;
                 i++;
                 keys[i] = key;
                 addresses[i] = address;
@@ -121,6 +124,10 @@ public class BPTree {
             // shift keys to the right
             keys[i + 1] = keys[i];
             addresses[i + 1] = addresses[i];
+        }
+        if (inserted == false) {
+            keys[0] = key;
+            addresses[0] = address;
         }
 
         prevLeaf.doSeparation();
@@ -650,6 +657,7 @@ public class BPTree {
                 }
             }
         }
+        // System.out.println("thisNode.keys = " + thisNode.getKey(0));
         // Reach Leaf Node, find all records with key that satisfy requirement
         LeafNode currentLeafNode = (LeafNode) thisNode;
         boolean end = false;
@@ -660,6 +668,7 @@ public class BPTree {
                 /* float targetKey = currentLeafNode.getKey(ptr); */
                 if (targetKey <= highBound && currentLeafNode.getKey(ptr) >= lowBound) {
                     Address targetAddress = currentLeafNode.getAddress(ptr);
+                    // System.out.println("Target Key = " + targetKey);
                     addressResult.add(targetAddress);
                     continue;
                 }
@@ -703,6 +712,8 @@ public class BPTree {
         System.out.println("------------------------------------------------------------------");
         System.out.printf("Total no of index nodes accesses: %d\n", totalBlockAccessed);
         System.out.printf("Total no of data block accesses: %d\n", numDataBlockAccessed);
+
+        System.out.println("Print address Result");
         return addressResult;
     }
 
@@ -771,5 +782,67 @@ public class BPTree {
         System.out.printf("Total no of index nodes accesses: %d\n", totalBlockAccessed);
         System.out.printf("Total no of data block accesses: %d\n", addressResult.size() + totalBlockAccessed);
         return addressResult;
+    }
+
+    public void printTree() {
+        System.out.println("#### Printing Tree ####");
+
+        ArrayList<Node> Q1 = new ArrayList<>();
+        Q1.add(root);
+        ArrayList<Node> Q2 = new ArrayList<>();
+
+        while (Q1.size() > 0 || Q2.size() > 0) {
+            while (Q1.size() > 0) {
+                Node temp = Q1.get(0);
+                Q1.remove(0);
+                if (temp.getIsLeafNode() == false) {
+                    // If not leaf node, add children to Queue
+                    InternalNode temp2 = (InternalNode) temp;
+                    ArrayList<Node> children = temp2.getChildNodes();
+                    for (int i = 0; i < children.size(); i++) {
+                        Q2.add(children.get(i));
+                    }
+                }
+                // print out the keys in the form [key1, key2, ...]
+                ArrayList<Float> keysSet = new ArrayList<>();
+                keysSet = temp.getKeys();
+                System.out.print("[");
+                for (int j = 0; j < keysSet.size(); j++) {
+                    System.out.print(keysSet.get(j) + ", ");
+                }
+                System.out.print("]");
+
+            }
+
+            // Print out spacing
+            System.out.println(" ");
+            System.out.println(" ");
+
+            while (Q2.size() > 0) {
+                // System.out.println("Q2.size() = " + Q2.size());
+                Node temp = Q2.get(0);
+                // System.out.println("Q2.get(0) passed");
+                Q2.remove(0);
+                if (temp.getIsLeafNode() == false) {
+                    // If not leaf node, add children to Queue
+                    InternalNode temp2 = (InternalNode) temp;
+                    ArrayList<Node> children = temp2.getChildNodes();
+                    for (int i = 0; i < children.size(); i++) {
+                        Q1.add(children.get(i));
+                    }
+                }
+                // print out the keys in the form [key1, key2, ...]
+                ArrayList<Float> keysSet = new ArrayList<>();
+                keysSet = temp.getKeys();
+                System.out.print("[");
+                for (int j = 0; j < keysSet.size(); j++) {
+                    System.out.print(keysSet.get(j) + ", ");
+                }
+                System.out.print("]");
+            }
+            System.out.println(" ");
+            System.out.println(" ");
+        }
+
     }
 }

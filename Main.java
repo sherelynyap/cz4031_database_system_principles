@@ -111,6 +111,7 @@ public class Main implements Config {
 
         long startTime = System.nanoTime();
         ArrayList<Address> dataAddress = BpTree.showExperiment3((float) 0.5);
+
         ArrayList<Record> records = disk.getRecords(dataAddress); // To store all the records fit the condition above
 
         long runtime = System.nanoTime() - startTime;
@@ -143,16 +144,20 @@ public class Main implements Config {
 
     public void runExperiment4() throws Exception {
         System.out.println("\nRunning Experiment 4...");
+        float lowBound = 0.6f;
+        float highBound = 1.0f;
 
         long startingTime = System.nanoTime();
-        ArrayList<Address> addressResult = BpTree.doRangeRecordsRetrieval(0.6f, 1.0f);
+        ArrayList<Address> addressResult = BpTree.doRangeRecordsRetrieval(lowBound, highBound);
         ArrayList<Record> recordResult = disk.getRecords(addressResult);
 
         long totalRuntime = System.nanoTime() - startingTime;
         System.out.println("The running time of the retrieval process is " + totalRuntime / 1000000 + " ms");
 
+        System.out.println("AddressResult.Size = " + addressResult.size());
         float averageVal = 0;
         for (Record r : recordResult) {
+            System.out.println(r.FG_PCT_home);
             averageVal += r.FG3_PCT_home;
         }
 
@@ -161,7 +166,7 @@ public class Main implements Config {
         System.out.println("The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 is " + averageVal);
 
         startingTime = System.nanoTime();
-        recordResult = disk.linearScan(0.6f, 1.0f);
+        recordResult = disk.linearScan(lowBound, highBound);
         totalRuntime = System.nanoTime() - startingTime;
         System.out.println("The running time of the retrieval process (brute-forcelinear scan method) is "
                 + totalRuntime / 1000000 + " ms");
@@ -217,6 +222,10 @@ public class Main implements Config {
                 + runtime / 1000000 + " ms");
     }
 
+    public void printBTree() {
+        BpTree.printTree();
+    }
+
     public void displayMenu(int type) throws Exception {
         if (type == 1) {
             System.out
@@ -254,6 +263,8 @@ public class Main implements Config {
                         "Experiment (4): Retrieve movies with votes between 30,000 and 40,000 and its required statistics.");
                 System.out.println(
                         "Experiment (5): Delete movies with the attribute “numVotes” equal to 1,000 and its required statistics.");
+                System.out.println(
+                        "(6): Print B+Tree.");
                 System.out.println("           (exit): Exit ");
                 System.out.println(
                         "======================================================================================");
@@ -275,6 +286,9 @@ public class Main implements Config {
                         break;
                     case "5":
                         runExperiment55();
+                        break;
+                    case "6":
+                        printBTree();
                         break;
                 }
 
