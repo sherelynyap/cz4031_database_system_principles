@@ -176,7 +176,7 @@ public class Main implements Config {
 
     }
 
-    public void runExperiment55() throws Exception {
+    public void runExperiment5() throws Exception {
         
         //Copies the disk to do linear scan
         Disk d = new Disk() ;
