@@ -158,7 +158,7 @@ public class Main {
     public void experiment3() throws Exception {
         //Normal Query
         long startTime = System.nanoTime();
-        ArrayList<Address> dataAddress = index.showExperiment3((float) 0.5);
+        ArrayList<Address> dataAddress = index.doRecordsWithKeysRetrieval(0.5f);
         ArrayList<Record> records = disk.getRecords(dataAddress); // To store all the records fit the condition above
         long runtime = System.nanoTime() - startTime;
 

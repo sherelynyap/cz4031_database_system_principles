@@ -519,12 +519,6 @@ public class BPTree {
         return result;
     }
 
-    public ArrayList<Address> showExperiment3(float searchingKey) {
-        return doRecordsWithKeysRetrieval(searchingKey, true);
-    }
-
-
-
     /**
      * doRecordsWithKeysRetrieval(float searchingKey, boolean isPrint): Search for
      * records with a specific key.
@@ -573,7 +567,7 @@ public class BPTree {
      * Returns result array list containing the addresses of all records with the
      * same key.
      */
-    private ArrayList<Address> doRecordsWithKeysRetrieval(float searchingKey, boolean isPrint) {
+    private ArrayList<Address> doRecordsWithKeysRetrieval(float searchingKey) {
         ArrayList<Address> result = new ArrayList<>();
         int blockAccess = 1;
         int siblingAccess = 0;
@@ -623,13 +617,12 @@ public class BPTree {
                 }
             }
         }
-        if (isPrint) {
-            System.out.println();
-            System.out.println("B+ tree");
-            System.out.println("------------------------------------------------------------------");
-            System.out.printf("Total no of index nodes accesses: %d\n", blockAccess);
-            System.out.printf("Total no of data block accesses: %d\n", result.size() + blockAccess);
-        }
+
+        System.out.println();
+        System.out.println("B+ tree");
+        System.out.println("------------------------------------------------------------------");
+        System.out.printf("Total no of index nodes accesses: %d\n", blockAccess);
+        System.out.printf("Total no of data block accesses: %d\n", result.size() + blockAccess);
 
         return result;
     }
@@ -819,69 +812,5 @@ public class BPTree {
             System.out.println(" ");
             System.out.println(" ");
         }
-
-    }
-
-    public ArrayList<Address> doRangeRecordsRetrievalnoDuplicate(float lowBound, float highBound) {
-        ArrayList<Address> addressResult = new ArrayList<>();
-        ArrayList<Float> values = new ArrayList<>();
-        int totalBlockAccessed = 1;
-        InternalNode tempIntNode;
-        Node thisNode = root;
-
-        while (thisNode.getIsLeafNode() == false) {
-            tempIntNode = (InternalNode) thisNode;
-            int numKeys = tempIntNode.getKeys().size();
-            int lastIndex = numKeys - 1;
-            for (int ptr = 0; ptr < numKeys; ptr++) {
-                if (tempIntNode.getKey(ptr) >= lowBound) {
-                    // If Key >= lowBound, get this child and break
-                    totalBlockAccessed += 1;
-                    thisNode = tempIntNode.getChildNode(ptr);
-                    break;
-                }
-
-                if (ptr == lastIndex) {
-                    // If reach end of searching key, just get the child node of the Most Right
-                    int target = lastIndex + 1;
-                    totalBlockAccessed += 1;
-                    thisNode = tempIntNode.getChildNode(target);
-                    break;
-                }
-            }
-        }
-        // Reach Leaf Node, find all records with key that satisfy requirement
-        LeafNode currentLeafNode = (LeafNode) thisNode;
-        boolean end = false;
-        while (end == false && currentLeafNode != null) {
-            for (int ptr = 0; ptr < currentLeafNode.getKeys().size(); ptr++) {
-                // When found valid key, add into addressResult list
-                float targetKey = currentLeafNode.getKey(ptr);
-                /* float targetKey = currentLeafNode.getKey(ptr); */
-                if (targetKey <= highBound && currentLeafNode.getKey(ptr) >= lowBound) {
-                    if (!values.contains(targetKey)) {
-                        values.add(targetKey);
-                        Address targetAddress = currentLeafNode.getAddress(ptr);
-                        addressResult.add(targetAddress);
-                    }
-                    continue;
-                }
-                // if curKey > searching key, stop searching and exit
-                if (targetKey > highBound) {
-                    end = true;
-                    break;
-                }
-            }
-            if (end == false) {
-                // Check sibling node has remaining records of valid Keys
-                if (currentLeafNode.getNextNode() == null) {
-                    break;
-                } else {
-                    totalBlockAccessed += 1;
-                    currentLeafNode = (LeafNode) currentLeafNode.getNextNode();
-                }
-            }
-        }
-        return addressResult;
     }
 }
