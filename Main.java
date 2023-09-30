@@ -157,7 +157,6 @@ public class Main implements Config {
         System.out.println("AddressResult.Size = " + addressResult.size());
         float averageVal = 0;
         for (Record r : recordResult) {
-            System.out.println(r.FG_PCT_home);
             averageVal += r.FG3_PCT_home;
         }
 
