@@ -713,7 +713,6 @@ public class BPTree {
         System.out.printf("Total no of index nodes accesses: %d\n", totalBlockAccessed);
         System.out.printf("Total no of data block accesses: %d\n", numDataBlockAccessed);
 
-        System.out.println("Print address Result");
         return addressResult;
     }
 
