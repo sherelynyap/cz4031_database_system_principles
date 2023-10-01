@@ -73,11 +73,11 @@ public class BPTree {
      * key-value pair into a leaf node in a B+ tree.
      */
     public void insertLeafNode(LeafNode leafNode, float key, Address address) {
-            if (leafNode.getKeys().size() >= maxKeys) {
-                splitLeafNode(leafNode, key, address);
-            } else {
-                leafNode.setAddress(key, address);
-            }
+        if (leafNode.getKeys().size() >= maxKeys) {
+            splitLeafNode(leafNode, key, address);
+        } else {
+            leafNode.setAddress(key, address);
+        }
     }
 
     /**
@@ -505,7 +505,7 @@ public class BPTree {
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -630,36 +630,7 @@ public class BPTree {
         return result;
     }
 
-    /**
-     * doRangeRecordsRetrieval(float low, float high): Range query method on a
-     * B-tree.
-     * It retrieves all addresses stored in the tree that have a key within a
-     * specified range.
-     * 
-     * Initializing a result array list that will hold the addresses that satisfy
-     * the query.
-     * Set the node count and sibling count to 1 and 0, respectively, and assigns
-     * the root node to the variable "curr".
-     * In the while loop:
-     * Traverse down the tree from the root node until it reaches a leaf node.
-     * During the traversal, it checks each internal node's keys to determine which
-     * child node to move to next based
-     * on the range being queried. It also increments the blockAccess for each node
-     * visited.
-     * If leaf node is found:
-     * Loops through its keys to check which addresses fall within the specified
-     * range.
-     * If a matching address is found:
-     * Add to result array list.
-     * If the key exceeds the specified range:
-     * Exit loop.
-     * 
-     * Also checks sibling nodes for remaining records that meet the query criteria.
-     * Returns the result array list containing the addresses that meet the query
-     * criteria.
-     */
-    // Code for Experiment 4
-    public ArrayList<Address> doRangeRecordsRetrieval(float lowBound, float highBound) {
+    public ArrayList<Address> rangeRetrieveRecords(float lowBound, float highBound) {
         ArrayList<Address> addressResult = new ArrayList<>();
         int totalBlockAccessed = 1;
         InternalNode tempIntNode;
@@ -671,14 +642,12 @@ public class BPTree {
             int lastIndex = numKeys - 1;
             for (int ptr = 0; ptr < numKeys; ptr++) {
                 if (tempIntNode.getKey(ptr) >= lowBound) {
-                    // If Key >= lowBound, get this child and break
                     totalBlockAccessed += 1;
                     thisNode = tempIntNode.getChildNode(ptr);
                     break;
                 }
 
                 if (ptr == lastIndex) {
-                    // If reach end of searching key, just get the child node of the Most Right
                     int target = lastIndex + 1;
                     totalBlockAccessed += 1;
                     thisNode = tempIntNode.getChildNode(target);
@@ -686,29 +655,28 @@ public class BPTree {
                 }
             }
         }
-        // System.out.println("thisNode.keys = " + thisNode.getKey(0));
-        // Reach Leaf Node, find all records with key that satisfy requirement
-        LeafNode currentLeafNode = (LeafNode) thisNode;
+
         boolean end = false;
+        LeafNode currentLeafNode = (LeafNode) thisNode;
         while (end == false && currentLeafNode != null) {
             for (int ptr = 0; ptr < currentLeafNode.getKeys().size(); ptr++) {
-                // When found valid key, add into addressResult list
+
                 float targetKey = currentLeafNode.getKey(ptr);
-                /* float targetKey = currentLeafNode.getKey(ptr); */
+
                 if (targetKey <= highBound && currentLeafNode.getKey(ptr) >= lowBound) {
                     Address targetAddress = currentLeafNode.getAddress(ptr);
-                    // System.out.println("Target Key = " + targetKey);
+
                     addressResult.add(targetAddress);
                     continue;
                 }
-                // if curKey > searching key, stop searching and exit
+
                 if (targetKey > highBound) {
                     end = true;
                     break;
                 }
             }
             if (end == false) {
-                // Check sibling node has remaining records of valid Keys
+
                 if (currentLeafNode.getNextNode() == null) {
                     break;
                 } else {
@@ -717,6 +685,7 @@ public class BPTree {
                 }
             }
         }
+
         // Calculate the number of blocks in addressResult
         int numDataBlockAccessed = 0;
         if (addressResult.size() == 1) {
@@ -732,9 +701,6 @@ public class BPTree {
                 }
             }
         }
-
-        // System.out.println("Print Block Accessed: " + numDataBlockAccessed);
-        // System.out.println("Print Record Accessed: " + addressResult.size());
 
         System.out.println();
         System.out.println("B+ tree");
@@ -791,9 +757,9 @@ public class BPTree {
             System.out.println(" ");
 
             while (Q2.size() > 0) {
-                // System.out.println("Q2.size() = " + Q2.size());
+
                 Node temp = Q2.get(0);
-                // System.out.println("Q2.get(0) passed");
+
                 Q2.remove(0);
                 if (temp.getIsLeafNode() == false) {
                     // If not leaf node, add children to Queue
