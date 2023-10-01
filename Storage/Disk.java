@@ -116,13 +116,13 @@ public class Disk {
             }
         }
 
-        System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
+        System.out.printf("The number of data blocks accessed: %d\n", blockAccess);
 
         return recordList;
     }
 
     public ArrayList<Record> linearScan(float lowerBound, float upperBound) {
-        System.out.println("\nBrute-force Linear Scan（Range)");
+        System.out.println("\nBrute-force Linear Scan (Range)");
         System.out.println("------------------------------------------------------------------");
 
         int blockAccess = 0;
@@ -144,7 +144,7 @@ public class Disk {
             }
         }
 
-        System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
+        System.out.printf("The number of data blocks accessed: %d\n", blockAccess);
 
         return recordList;
     }
@@ -178,6 +178,6 @@ public class Disk {
         }
 
         deleteRecord(addressList);
-        System.out.printf("Total no of data block accessed to delete a record (brute-force linear scan method): %d\n", blockAccess);
+        System.out.printf("The number of data blocks accessed: %d\n", blockAccess);
     }
 }

@@ -161,17 +161,15 @@ public class Main {
         ArrayList<Record> records = disk.getRecords(dataAddress);
         long runtime = System.nanoTime() - startTime;
 
+        System.out.println("The average of \"FG3_PCT_home\" for Exp 3: " + calcFG3Avg(records));
         System.out.println("The running time of the retrieval process: " + runtime / 1000000 + " ms");
-        System.out.println("For records with FG_PCT_home = 0.5, average FG3_PCT_home: " + calcFG3Avg(records));
 
         // Brute Force Linear Scan
         startTime = System.nanoTime();
         records = disk.linearScan(0.5f);
         runtime = System.nanoTime() - startTime;
-        System.out.println("The running time of the retrieval process (brute-force linear scan method): "
-                + runtime / 1000000 + " ms");
-        System.out.println("For records with FG_PCT_home = 0.5, average FG_PCT_home (brute-force linear scan method): "
-                + calcFG3Avg(records));
+        
+        System.out.println("The running time of the retrieval process: " + runtime / 1000000 + " ms");
     }
 
     public void experiment4() throws Exception {
@@ -181,19 +179,15 @@ public class Main {
         ArrayList<Record> records = disk.getRecords(addressList);
         long totalRuntime = System.nanoTime() - startingTime;
 
-        System.out.println("The running time of the retrieval process is " + totalRuntime / 1000000 + " ms");
-        System.out.println("The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 is " + calcFG3Avg(records));
+        System.out.println("The average of \"FG3_PCT_home\" for Exp 4: " + calcFG3Avg(records));
+        System.out.println("The running time of the retrieval process: " + totalRuntime / 1000000 + " ms");
 
         // Brute Force Linear Scan
         startingTime = System.nanoTime();
         records = disk.linearScan(0.6f, 1.0f);
         totalRuntime = System.nanoTime() - startingTime;
-        System.out.println("The running time of the retrieval process (brute-forcelinear scan method) is "
-                + totalRuntime / 1000000 + " ms");
 
-        System.out.println(
-                "The average FG3_PCT_home of the records where FG_PCT_home from 0.6 - 1 using (brute-force linear scan method) is "
-                        + calcFG3Avg(records) + "\n");
+        System.out.println("The running time of the retrieval process: " + totalRuntime / 1000000 + " ms");
     }
 
     public void experiment5() throws Exception {
@@ -210,15 +204,15 @@ public class Main {
         disk.deleteRecord(index.removeKey(0f, 0.35f));
         long runtime = System.nanoTime() - startTime;
 
-        System.out.println("The running time of the deletion process is " + runtime / 1000000 + " ms");
         index.printInfo();
+        System.out.println("The running time of the deletion process is: " + runtime / 1000000 + " ms");
 
         // Brute force deletion
         startTime = System.nanoTime();
         tempDisk.linearScanDeletion(0.35f);
         runtime = System.nanoTime() - startTime;
         
-        System.out.println("The running time of the deletion process is (brute-force linear scan method) "
+        System.out.println("The running time of the deletion process is: "
                 + runtime / 1000000 + " ms");
     }
 

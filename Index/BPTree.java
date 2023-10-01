@@ -605,11 +605,27 @@ public class BPTree {
             }
         }
 
+        // Calculate the number of blocks in addressResult
+        int numDataBlockAccessed = 0;
+        if (result.size() == 1) {
+            numDataBlockAccessed = 1;
+        }
+        if (result.size() > 1) {
+            numDataBlockAccessed = 1;
+            int previousBlockID = result.get(0).blockID;
+            for (int i = 1; i < result.size(); i++) {
+                if (result.get(i).blockID != previousBlockID) {
+                    previousBlockID = result.get(i).blockID;
+                    numDataBlockAccessed += 1;
+                }
+            }
+        }
+
         System.out.println();
         System.out.println("B+ tree");
         System.out.println("------------------------------------------------------------------");
-        System.out.printf("Total no of index nodes accesses: %d\n", blockAccess);
-        System.out.printf("Total no of data block accesses: %d\n", result.size() + blockAccess);
+        System.out.printf("The number of index nodes accessed: %d\n", blockAccess);
+        System.out.printf("The number of data blocks accessed: %d\n", numDataBlockAccessed);
 
         return result;
     }
@@ -723,8 +739,8 @@ public class BPTree {
         System.out.println();
         System.out.println("B+ tree");
         System.out.println("------------------------------------------------------------------");
-        System.out.printf("Total no of index nodes accesses: %d\n", totalBlockAccessed);
-        System.out.printf("Total no of data block accesses: %d\n", numDataBlockAccessed);
+        System.out.printf("The number of index nodes accessed: %d\n", totalBlockAccessed);
+        System.out.printf("The number of data blocks accessed: %d\n", numDataBlockAccessed);
 
         return addressResult;
     }
