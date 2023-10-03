@@ -452,7 +452,7 @@ public class BPTree {
         return result;
     }
 
-    public ArrayList<Address> retrieveRecordsWithKey(float lowBound, float highBound) {
+    public ArrayList<Address> retrieveRecordsWithKey(float lowerBound, float upperBound) {
         ArrayList<Address> addressResult = new ArrayList<>();
         int totalBlockAccessed = 1;
         InternalNode tempIntNode;
@@ -463,7 +463,7 @@ public class BPTree {
             int numKeys = tempIntNode.getKeys().size();
             int lastIndex = numKeys - 1;
             for (int ptr = 0; ptr < numKeys; ptr++) {
-                if (tempIntNode.getKey(ptr) >= lowBound) {
+                if (tempIntNode.getKey(ptr) >= lowerBound) {
                     totalBlockAccessed += 1;
                     thisNode = tempIntNode.getChildNode(ptr);
                     break;
@@ -485,14 +485,14 @@ public class BPTree {
 
                 float targetKey = currentLeafNode.getKey(ptr);
 
-                if (targetKey <= highBound && currentLeafNode.getKey(ptr) >= lowBound) {
+                if (targetKey <= upperBound && currentLeafNode.getKey(ptr) >= lowerBound) {
                     Address targetAddress = currentLeafNode.getAddress(ptr);
 
                     addressResult.add(targetAddress);
                     continue;
                 }
 
-                if (targetKey > highBound) {
+                if (targetKey > upperBound) {
                     end = true;
                     break;
                 }
