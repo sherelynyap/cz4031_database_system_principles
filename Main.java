@@ -155,7 +155,7 @@ public class Main {
     public void experiment3() throws Exception {
         //Normal Query
         long startTime = System.nanoTime();
-        ArrayList<Address> dataAddress = index.doRecordsWithKeysRetrieval(0.5f);
+        ArrayList<Address> dataAddress = index.retrieveRecordsWithKey(0.5f);
         ArrayList<Record> records = disk.getRecords(dataAddress);
         long runtime = System.nanoTime() - startTime;
 
@@ -173,7 +173,7 @@ public class Main {
     public void experiment4() throws Exception {
         // Normal query
         long startingTime = System.nanoTime();
-        ArrayList<Address> addressList = index.doRangeRecordsRetrieval(0.6f, 1.0f);
+        ArrayList<Address> addressList = index.retrieveRecordsWithKey(0.6f, 1.0f);
         ArrayList<Record> records = disk.getRecords(addressList);
         long totalRuntime = System.nanoTime() - startingTime;
 

@@ -7,7 +7,7 @@ import storage.Address;
 import java.lang.Float;
 
 public class BPTree {
-
+    // Pointer = 8B, Key = 4B, Bool = 1B
     private static final int POINTER_SIZE = 8;
     private static final int KEY_SIZE = 4;
     private static final int BOOL_SIZE = 1;
@@ -20,7 +20,7 @@ public class BPTree {
     int minLeafKeys;
 
     public BPTree(int blkSize) {
-    
+        // InternalNode_ptr(8B) + isRoot(1B) + isLeaf(1B) + 4n + 8(n+1) <= blkSize
         maxKeys = (blkSize - 2 * POINTER_SIZE - 2 * BOOL_SIZE) / (POINTER_SIZE +
                 KEY_SIZE);
         minInternalKeys = (int) Math.floor(maxKeys / 2);
@@ -35,9 +35,8 @@ public class BPTree {
     }
 
     public void insert(float key, Address address) {
-        this.leafNodeInsertion(this.searchLeafNode(key), key, address);
+        this.insertLeafNode(this.searchLeafNode(key), key, address);
     }
-
    
     public LeafNode searchLeafNode(float key) {
         if (this.root.getIsLeafNode())
@@ -64,9 +63,8 @@ public class BPTree {
             }
         }
     }
-
     
-    public void leafNodeInsertion(LeafNode leafNode, float key, Address address) {
+    public void insertLeafNode(LeafNode leafNode, float key, Address address) {
         if (leafNode.getKeys().size() >= maxKeys) {
             splitLeafNode(leafNode, key, address);
         } else {
@@ -126,14 +124,14 @@ public class BPTree {
         } else if (prevLeaf.getInternalNode().getKeys().size() < maxKeys) {
             prevLeaf.getInternalNode().insertChild(newLeaf);
         } else {
-            parentNodeSeparation(prevLeaf.getInternalNode(), newLeaf);
+            splitParentNode(prevLeaf.getInternalNode(), newLeaf);
         }
 
         numNodes++;
     }
 
     
-    public void parentNodeSeparation(InternalNode parentNode, Node childNode) {
+    public void splitParentNode(InternalNode parentNode, Node childNode) {
         Node childNodes[] = new Node[maxKeys + 2];
         float keys[] = new float[maxKeys + 2];
         float key = childNode.retrieveSmallestKey();
@@ -176,7 +174,7 @@ public class BPTree {
         } else if (parentNode.getInternalNode().getKeys().size() < maxKeys) {
             parentNode.getInternalNode().insertChild(parentNode2);
         } else {
-            parentNodeSeparation(parentNode.getInternalNode(), parentNode2);
+            splitParentNode(parentNode.getInternalNode(), parentNode2);
         }
 
         numNodes++;
@@ -189,7 +187,7 @@ public class BPTree {
         ArrayList<Float> keys;
         LeafNode leafNode;
 
-        ArrayList<Float> keyOfRecordsToDelete = doRangeKeysRetrieval(lowerBound, upperBound);
+        ArrayList<Float> keyOfRecordsToDelete = retrieveRangeOfKeys(lowerBound, upperBound);
 
         int length = keyOfRecordsToDelete.size();
 
@@ -204,7 +202,7 @@ public class BPTree {
                     addressOfRecordsToDelete.add(leafNode.getAddress(i));
                     leafNode.deleteAddress(i);
                     if (!leafNode.getIsRootNode()) {
-                        cleaningLeaf(leafNode);
+                        cleanLeafNode(leafNode);
                     }
                     break;
                 }
@@ -215,10 +213,10 @@ public class BPTree {
     }
 
     
-    public void cleaningLeaf(LeafNode leafNode) {
+    public void cleanLeafNode(LeafNode leafNode) {
 
         if (leafNode.getKeys().size() >= minLeafKeys) {
-            ParentNodeCleaning(leafNode.getInternalNode());
+            cleanParentNode(leafNode.getInternalNode());
             return;
         }
 
@@ -271,11 +269,11 @@ public class BPTree {
             numNodes--;
         }
 
-        ParentNodeCleaning(copy);
+        cleanParentNode(copy);
     }
 
     
-    public void ParentNodeCleaning(InternalNode parent) {
+    public void cleanParentNode(InternalNode parent) {
         if (parent.getIsRootNode()) {
 
             if (parent.getChildNodes().size() > 1) {
@@ -343,10 +341,10 @@ public class BPTree {
             parent.deleteNode();
             numNodes--;
         }
-        ParentNodeCleaning(duplicate);
+        cleanParentNode(duplicate);
     }
 
-    private ArrayList<Float> doRangeKeysRetrieval(float lowerBound, float upperBound) {
+    private ArrayList<Float> retrieveRangeOfKeys(float lowerBound, float upperBound) {
         ArrayList<Float> result = new ArrayList<>();
         Node currNode = root;
         InternalNode internalNode;
@@ -390,7 +388,7 @@ public class BPTree {
     }
 
     
-    public ArrayList<Address> doRecordsWithKeysRetrieval(float searchingKey) {
+    public ArrayList<Address> retrieveRecordsWithKey(float searchingKey) {
         ArrayList<Address> result = new ArrayList<>();
         int blockAccess = 1;
         Node currNode = root;
@@ -460,7 +458,7 @@ public class BPTree {
         return result;
     }
 
-    public ArrayList<Address> rangeRetrieveRecords(float lowBound, float highBound) {
+    public ArrayList<Address> retrieveRecordsWithKey(float lowBound, float highBound) {
         ArrayList<Address> addressResult = new ArrayList<>();
         int totalBlockAccessed = 1;
         InternalNode tempIntNode;
