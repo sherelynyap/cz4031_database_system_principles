@@ -35,7 +35,7 @@ public class BPTree {
     public void insertKey(float key, Address address) {
         this.insertLeafNode(this.searchLeafNode(key), key, address);
     }
-   
+
     public LeafNode searchLeafNode(float key) {
         if (this.root.getIsLeaf())
             return (LeafNode) root;
@@ -61,60 +61,77 @@ public class BPTree {
             }
         }
     }
-    
+
     public void insertLeafNode(LeafNode leafNode, float key, Address address) {
-        if (leafNode.getKeys().size() >= maxKeys) {
+        // Check if the key exist
+        if (leafNode.getKeys().contains(key) == false && leafNode.getKeys().size() >= maxKeys) {
+            // If does not exist and need to split
             splitLeafNode(leafNode, key, address);
         } else {
+            // If does not need splitting
             leafNode.setAddress(key, address);
         }
     }
 
-   
     public void splitLeafNode(LeafNode prevLeaf, float key, Address address) {
-        Address addresses[] = new Address[maxKeys + 1];
+        // Only called when need splitting due to the key and address
+        // Address addresses[] = new Address[maxKeys + 1];
+        ArrayList<ArrayList<Address>> addresses = new ArrayList<ArrayList<Address>>();
         float keys[] = new float[maxKeys + 1];
         LeafNode newLeaf = new LeafNode();
 
+        System.out.print(addresses.size());
         int i;
         for (i = 0; i < maxKeys; i++) {
             keys[i] = prevLeaf.getKey(i);
-            addresses[i] = prevLeaf.getAddress(i);
+            addresses.add(prevLeaf.getAddress(i));
         }
 
         boolean inserted = false;
+        ArrayList<Address> addressLL = new ArrayList<Address>();
+        ArrayList<Address> dummyLL = new ArrayList<Address>();
+        addresses.add(dummyLL);
+        addressLL.add(address);
         for (i = maxKeys - 1; i >= 0; i--) {
             if (Float.compare(keys[i], key) <= 0) {
                 inserted = true;
                 i++;
                 keys[i] = key;
-                addresses[i] = address;
+                addresses.set(i, addressLL);
                 break;
             }
             keys[i + 1] = keys[i];
-            addresses[i + 1] = addresses[i];
+            addresses.set(i + 1, addresses.get(i));
         }
         if (inserted == false) {
             keys[0] = key;
-            addresses[0] = address;
+            addresses.set(0, addressLL);
         }
 
         prevLeaf.doSeparation();
 
-        for (i = 0; i < minLeafKeys; i++)
-            prevLeaf.setAddress(keys[i], addresses[i]);
-        for (i = minLeafKeys; i < maxKeys + 1; i++)
-            newLeaf.setAddress(keys[i], addresses[i]);
+        for (i = 0; i < minLeafKeys; i++) {
+            ArrayList<Address> tempLL = addresses.get(i);
+            for (int j = 0; j < tempLL.size(); j++) {
+                prevLeaf.setAddress(keys[i], tempLL.get(j));
+            }
+        }
 
+        for (i = minLeafKeys; i < maxKeys + 1; i++) {
+            ArrayList<Address> tempLL = addresses.get(i);
+            for (int j = 0; j < tempLL.size(); j++) {
+                newLeaf.setAddress(keys[i], tempLL.get(j));
+            }
+        }
         newLeaf.setNextNode(prevLeaf.getNextNode());
         prevLeaf.setNextNode(newLeaf);
 
         if (prevLeaf.getIsRoot()) {
             InternalNode newRoot = new InternalNode();
             prevLeaf.setIsRoot(false);
-            newRoot.setIsRoot(true); 
-            newRoot.insertChild(prevLeaf); 
-            newRoot.insertChild(newLeaf); 
+            newRoot.setIsRoot(true);
+            newRoot.insertChild(prevLeaf);
+            newRoot.insertChild(newLeaf);
             root = newRoot;
             numLevels++;
         } else if (prevLeaf.getInternalNode().getKeys().size() < maxKeys) {
@@ -126,7 +143,6 @@ public class BPTree {
         numNodes++;
     }
 
-    
     public void splitParentNode(InternalNode parentNode, Node childNode) {
         Node childNodes[] = new Node[maxKeys + 2];
         float keys[] = new float[maxKeys + 2];
@@ -175,7 +191,6 @@ public class BPTree {
         numNodes++;
     }
 
-    
     public ArrayList<Address> removeKey(float lowerBound, float upperBound) {
         ArrayList<Address> addressOfRecordsToDelete = new ArrayList<>();
         ArrayList<Float> keys;
@@ -193,7 +208,7 @@ public class BPTree {
 
             for (int i = 0; i < keys.size(); i++) {
                 if (Float.compare(keys.get(i), key) == 0) {
-                    addressOfRecordsToDelete.add(leafNode.getAddress(i));
+                    addressOfRecordsToDelete.addAll(leafNode.getAddress(i));
                     leafNode.deleteAddress(i);
                     if (!leafNode.getIsRoot()) {
                         cleanLeafNode(leafNode);
@@ -205,7 +220,7 @@ public class BPTree {
 
         return addressOfRecordsToDelete;
     }
-    
+
     public void cleanLeafNode(LeafNode leafNode) {
         if (leafNode.getKeys().size() >= minLeafKeys) {
             cleanParentNode(leafNode.getInternalNode());
@@ -220,20 +235,25 @@ public class BPTree {
         LeafNode right = (LeafNode) leafNode.getInternalNode().getRightSiblingNode(leafNode);
         InternalNode duplicate;
 
-        if (left != null){
+        if (left != null) {
             leftExcess += left.getKeys().size() - minLeafKeys;
         }
 
-        if (right != null){
+        if (right != null) {
             rightExcess += right.getKeys().size() - minLeafKeys;
         }
 
         if (leftExcess + rightExcess >= required) {
             if (left != null) {
-                leafNode.setAddress(left.getKey(left.getKeys().size() - 1), left.getAddress(left.getKeys().size() - 1));
+                for (int i = 0; i < left.getAddress(left.getKeys().size() - 1).size(); i++) {
+                    leafNode.setAddress(left.getKey(left.getKeys().size() - 1),
+                            left.getAddress(left.getKeys().size() - 1).get(i));
+                }
                 left.deleteAddress(left.getKeys().size() - 1);
             } else {
-                leafNode.setAddress(right.getKey(0), right.getAddress(0));
+                for (int i = 0; i < right.getAddress(0).size(); i++) {
+                    leafNode.setAddress(right.getKey(0), right.getAddress(0).get(i));
+                }
                 right.deleteAddress(0);
             }
 
@@ -243,11 +263,17 @@ public class BPTree {
         else {
             if (left != null) {
                 for (int i = 0; i < leafNode.getKeys().size(); i++) {
-                    left.setAddress(leafNode.getKey(i), leafNode.getAddress(i));
+                    for (int j = 0; j < leafNode.getAddress(i).size(); j++) {
+                        left.setAddress(leafNode.getKey(i), leafNode.getAddress(i).get(j));
+                    }
+
                 }
             } else {
                 for (int i = 0; i < leafNode.getKeys().size(); i++) {
-                    right.setAddress(leafNode.getKey(i), leafNode.getAddress(i));
+                    for (int j = 0; j < leafNode.getAddress(i).size(); j++) {
+                        right.setAddress(leafNode.getKey(i), leafNode.getAddress(i).get(j));
+                    }
+
                 }
             }
 
@@ -258,8 +284,9 @@ public class BPTree {
                     left = searchLeafNode(duplicate.retrieveSmallestKey() - 1);
                 }
             }
-
-            left.setNextNode(leafNode.getNextNode());
+            if (left != null) {
+                left.setNextNode(leafNode.getNextNode());
+            }
 
             leafNode.deleteNode();
             numNodes--;
@@ -268,7 +295,6 @@ public class BPTree {
         cleanParentNode(duplicate);
     }
 
-    
     public void cleanParentNode(InternalNode parent) {
         if (parent.getIsRoot()) {
             if (parent.getChildNodes().size() > 1) {
@@ -294,11 +320,11 @@ public class BPTree {
         InternalNode rightSiblingNode = (InternalNode) parent.getInternalNode().getRightSiblingNode(parent);
         InternalNode duplicate;
 
-        if (leftSiblingNode != null){
+        if (leftSiblingNode != null) {
             leftExcess += leftSiblingNode.getKeys().size() - minInternalKeys;
         }
 
-        if (rightSiblingNode != null){
+        if (rightSiblingNode != null) {
             rightExcess += rightSiblingNode.getKeys().size() - minInternalKeys;
         }
 
@@ -381,7 +407,6 @@ public class BPTree {
         return result;
     }
 
-    
     public ArrayList<Address> retrieveRecordsWithKey(float searchingKey) {
         ArrayList<Address> result = new ArrayList<>();
         int blockAccess = 1;
@@ -410,7 +435,7 @@ public class BPTree {
         while (!finish && curr != null) {
             for (int i = 0; i < curr.getKeys().size(); i++) {
                 if (Float.compare(curr.getKey(i), searchingKey) == 0) {
-                    result.add(curr.getAddress(i));
+                    result.addAll(curr.getAddress(i));
                     continue;
                 }
                 if (curr.getKey(i) > searchingKey) {
@@ -486,9 +511,10 @@ public class BPTree {
                 float targetKey = currentLeafNode.getKey(ptr);
 
                 if (targetKey <= upperBound && currentLeafNode.getKey(ptr) >= lowerBound) {
-                    Address targetAddress = currentLeafNode.getAddress(ptr);
-
-                    addressResult.add(targetAddress);
+                    ArrayList<Address> targetAddresses = currentLeafNode.getAddress(ptr);
+                    for (int i = 0; i < targetAddresses.size(); i++) {
+                        addressResult.add(targetAddresses.get(i));
+                    }
                     continue;
                 }
 
@@ -543,6 +569,9 @@ public class BPTree {
 
     public void printTree() {
         System.out.println("#### Printing Tree ####");
+        System.out.printf("maxKeys = %d\n", maxKeys);
+        System.out.printf("minIntenalKeys = %d\n", minInternalKeys);
+        System.out.printf("minLeafKeys = %d\n", minLeafKeys);
 
         ArrayList<Node> Q1 = new ArrayList<>();
         Q1.add(root);
@@ -553,14 +582,14 @@ public class BPTree {
                 Node temp = Q1.get(0);
                 Q1.remove(0);
                 if (temp.getIsLeaf() == false) {
-                
+
                     InternalNode temp2 = (InternalNode) temp;
                     ArrayList<Node> children = temp2.getChildNodes();
                     for (int i = 0; i < children.size(); i++) {
                         Q2.add(children.get(i));
                     }
                 }
-          
+
                 ArrayList<Float> keysSet = new ArrayList<>();
                 keysSet = temp.getKeys();
                 System.out.print("[");
@@ -571,7 +600,6 @@ public class BPTree {
 
             }
 
- 
             System.out.println(" ");
             System.out.println(" ");
 
@@ -581,14 +609,14 @@ public class BPTree {
 
                 Q2.remove(0);
                 if (temp.getIsLeaf() == false) {
-                  
+
                     InternalNode temp2 = (InternalNode) temp;
                     ArrayList<Node> children = temp2.getChildNodes();
                     for (int i = 0; i < children.size(); i++) {
                         Q1.add(children.get(i));
                     }
                 }
-              
+
                 ArrayList<Float> keysSet = new ArrayList<>();
                 keysSet = temp.getKeys();
                 System.out.print("[");

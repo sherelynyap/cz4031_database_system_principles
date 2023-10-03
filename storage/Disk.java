@@ -13,7 +13,7 @@ public class Disk {
     int recordCount;
 
     ArrayList<Block> blocks;
-    Set<Integer> candidateBlocks; //Block with free slots after deleting records
+    Set<Integer> candidateBlocks; // Block with free slots after deleting records
 
     public Disk() {
         this.blockCount = 0;
@@ -23,41 +23,41 @@ public class Disk {
         this.candidateBlocks = new HashSet<>();
     }
 
-    public int getBlockCount(){
+    public int getBlockCount() {
         return this.blockCount;
     }
 
-    public int getRecordCount(){
+    public int getRecordCount() {
         return this.recordCount;
     }
 
-    public ArrayList<Block> getBlocks(){
+    public ArrayList<Block> getBlocks() {
         return this.blocks;
     }
 
-    public Record getRecord(Address address) throws Exception{
+    public Record getRecord(Address address) throws Exception {
         return blocks.get(address.blockID).getRecordAt(address.offset);
     }
 
-    public ArrayList<Record> getRecords(ArrayList<Address> addressList) throws Exception{
+    public ArrayList<Record> getRecords(ArrayList<Address> addressList) throws Exception {
         ArrayList<Record> recordList = new ArrayList<>();
-        
+
         for (Address address : addressList) {
             recordList.add(getRecord(address));
         }
         return recordList;
     }
 
-    public Address insertRecord(Record record) throws Exception{
+    public Address insertRecord(Record record) throws Exception {
         int candidateBlockID;
-        if (!candidateBlocks.isEmpty()){
-            //If some records deleted from blocks previously
+        if (!candidateBlocks.isEmpty()) {
+            // If some records deleted from blocks previously
             candidateBlockID = candidateBlocks.iterator().next();
         } else {
-            //Else check the ArrayList of blocks
+            // Else check the ArrayList of blocks
             candidateBlockID = blocks.size() - 1;
-            if (candidateBlockID == -1 || blocks.get(candidateBlockID).isFull()){
-                if (blocks.size() == maxBlockSize){
+            if (candidateBlockID == -1 || blocks.get(candidateBlockID).isFull()) {
+                if (blocks.size() == maxBlockSize) {
                     throw new Exception("Maximum capacity of disk reached");
                 }
                 Block newBlock = new Block();
@@ -71,16 +71,16 @@ public class Disk {
         int offset = candidateBlock.insertRecord(record);
         recordCount++;
 
-        //Update candidateBlocks
-        if (candidateBlock.isFull()){
+        // Update candidateBlocks
+        if (candidateBlock.isFull()) {
             candidateBlocks.remove(candidateBlockID);
         }
 
         return new Address(candidateBlockID, offset);
     }
-    
-    public void deleteRecord(ArrayList<Address> addressList) throws Exception{
-        for (Address address : addressList){
+
+    public void deleteRecord(ArrayList<Address> addressList) throws Exception {
+        for (Address address : addressList) {
             int blockID = address.blockID;
             int offset = address.offset;
 
@@ -88,13 +88,14 @@ public class Disk {
             recordCount--;
             candidateBlocks.add(blockID);
 
-            if (emptiedAfterDeletion){
+            if (emptiedAfterDeletion) {
                 blockCount--;
             }
         }
     }
 
     public ArrayList<Record> linearScan(float key) {
+
         System.out.println("\nBrute-force Linear Scan");
         System.out.println("------------------------------------------------------------------");
 
@@ -102,8 +103,8 @@ public class Disk {
         ArrayList<Record> recordList = new ArrayList<>();
 
         for (Block block : blocks) {
-            //Ignore empty blocks
-            if (block.isEmpty()){
+            // Ignore empty blocks
+            if (block.isEmpty()) {
                 continue;
             }
 
@@ -114,6 +115,7 @@ public class Disk {
                 if (record != null && record.FG_PCT_home == key) {
                     recordList.add(record);
                 }
+
             }
         }
 
@@ -130,8 +132,8 @@ public class Disk {
         ArrayList<Record> recordList = new ArrayList<>();
 
         for (Block block : blocks) {
-            //Ignore empty blocks
-            if (block.isEmpty()){
+            // Ignore empty blocks
+            if (block.isEmpty()) {
                 continue;
             }
 
@@ -150,7 +152,7 @@ public class Disk {
         return recordList;
     }
 
-    public void linearScanDeletion(float upperBound) throws Exception{
+    public void linearScanDeletion(float upperBound) throws Exception {
         System.out.println("\nBrute-force Linear Scan (Delete)");
         System.out.println("------------------------------------------------------------------");
 
@@ -159,8 +161,8 @@ public class Disk {
 
         for (int blockID = 0; blockID < blocks.size(); blockID++) {
             Block block = blocks.get(blockID);
-            //Ignore empty blocks
-            if (block.isEmpty()){
+            // Ignore empty blocks
+            if (block.isEmpty()) {
                 continue;
             }
 

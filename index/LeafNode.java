@@ -5,19 +5,19 @@ import java.util.ArrayList;
 import storage.Address;
 
 public class LeafNode extends Node {
-    private ArrayList<Address> addressesSet;
+    private ArrayList<ArrayList<Address>> addressesSet;
     private LeafNode nextLeafNode;
 
     public LeafNode() {
         super();
         super.setIsLeaf(true);
         super.setIsRoot(false);
-        this.addressesSet = new ArrayList<Address>();
+        this.addressesSet = new ArrayList<ArrayList<Address>>();
         this.nextLeafNode = null;
     }
 
-    public Address getAddress(int targetIndex) {
-        Address targetAddress = addressesSet.get(targetIndex);
+    public ArrayList<Address> getAddress(int targetIndex) {
+        ArrayList<Address> targetAddress = addressesSet.get(targetIndex);
         return targetAddress;
     }
 
@@ -26,17 +26,29 @@ public class LeafNode extends Node {
         int targetIndex = 0;
         if (addressSetSize > 0) {
             targetIndex = super.setKey(targetKey);
-            addressesSet.add(targetAddress);
-            addressSetSize = this.getAddresses().size();
-
-            for (int ptr = addressSetSize - 2; ptr >= targetIndex; ptr--) {
-                addressesSet.set(ptr + 1, addressesSet.get(ptr));
+            // If the targetIndex already exist
+            // Check the length of keys and length of Address (Should be Same if the
+            // targetIndex already Exist)
+            // Just insert
+            if (this.getKeys().size() == this.getAddresses().size()) {
+                this.addressesSet.get(targetIndex).add(targetAddress);
+            } else {
+                // If the targetIndex does not exist
+                ArrayList<Address> tempLL = new ArrayList<Address>();
+                tempLL.add(targetAddress);
+                addressesSet.add(tempLL);
+                addressSetSize = this.getAddresses().size();
+                for (int ptr = addressSetSize - 2; ptr >= targetIndex; ptr--) {
+                    addressesSet.set(ptr + 1, addressesSet.get(ptr));
+                }
+                addressesSet.set(targetIndex, tempLL);
             }
-            addressesSet.set(targetIndex, targetAddress);
 
         } else {
+            ArrayList<Address> tempLL = new ArrayList<Address>();
+            tempLL.add(targetAddress);
             this.setKey(targetKey);
-            this.addressesSet.add(targetAddress);
+            this.addressesSet.add(tempLL);
         }
         return targetIndex;
     }
@@ -46,7 +58,7 @@ public class LeafNode extends Node {
         addressesSet.remove(targetIndex);
     }
 
-    public ArrayList<Address> getAddresses() {
+    public ArrayList<ArrayList<Address>> getAddresses() {
         return this.addressesSet;
     }
 
@@ -55,7 +67,7 @@ public class LeafNode extends Node {
     }
 
     public void resetAddresses() {
-        this.addressesSet = new ArrayList<Address>();
+        this.addressesSet = new ArrayList<ArrayList<Address>>();
     }
 
     public LeafNode getNextNode() {

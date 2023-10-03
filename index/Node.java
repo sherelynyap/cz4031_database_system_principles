@@ -33,10 +33,15 @@ public class Node {
         if (keysSize == 0) {
             keysSet.add(newKey);
         } else {
-            keysSet.add(newKey);
-            Collections.sort(keysSet);
-            targetIndex = binarySearch(newKey);
-
+            if (keysSet.contains(newKey)) {
+                // If this key is a duplicate, just find the targetIndex
+                targetIndex = binarySearch(newKey);
+            } else {
+                // If this key is not a duplicate, just insert and find the targetIndex
+                keysSet.add(newKey);
+                Collections.sort(keysSet);
+                targetIndex = binarySearch(newKey);
+            }
         }
         return targetIndex;
     }

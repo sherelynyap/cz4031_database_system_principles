@@ -93,7 +93,7 @@ public class Main {
         Scanner sc = new Scanner(System.in);
 
         do {
-            System.out.println( "=================================================================================");
+            System.out.println("=================================================================================");
             System.out.println("Select your option:");
             System.out.println("(1): Experiment 1");
             System.out.println("(2): Experiment 2");
@@ -102,7 +102,7 @@ public class Main {
             System.out.println("(5): Experiment 5");
             System.out.println("(6): Print B+ Tree");
             System.out.println("(7): Exit");
-            System.out.println( "=================================================================================");
+            System.out.println("=================================================================================");
             System.out.print("Your option (Type the number of the option): ");
 
             input = sc.nextLine();
@@ -151,7 +151,7 @@ public class Main {
     }
 
     public void experiment3() throws Exception {
-        //Normal Query
+        // Normal Query
         long startTime = System.nanoTime();
         ArrayList<Address> dataAddress = index.retrieveRecordsWithKey(0.5f);
         ArrayList<Record> records = disk.getRecords(dataAddress);
@@ -164,7 +164,7 @@ public class Main {
         startTime = System.nanoTime();
         records = disk.linearScan(0.5f);
         runtime = System.nanoTime() - startTime;
-        
+
         System.out.println("The running time of the retrieval process: " + runtime / 1000000 + " ms");
     }
 
@@ -208,7 +208,7 @@ public class Main {
         startTime = System.nanoTime();
         tempDisk.linearScanDeletion(0.35f);
         runtime = System.nanoTime() - startTime;
-        
+
         System.out.println("The running time of the deletion process is: " + runtime / 1000000 + " ms");
     }
 
@@ -216,7 +216,7 @@ public class Main {
         index.printTree();
     }
 
-    public float calcFG3Avg(ArrayList<Record> records){        
+    public float calcFG3Avg(ArrayList<Record> records) {
         float total_FG3 = 0;
         for (Record record : records) {
             total_FG3 += record.FG3_PCT_home;
