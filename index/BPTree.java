@@ -86,7 +86,6 @@ public class BPTree {
 
         boolean inserted = false;
         for (i = maxKeys - 1; i >= 0; i--) {
-
             if (Float.compare(keys[i], key) <= 0) {
                 inserted = true;
                 i++;
@@ -113,7 +112,6 @@ public class BPTree {
         prevLeaf.setNextNode(newLeaf);
 
         if (prevLeaf.getIsRoot()) {
-
             InternalNode newRoot = new InternalNode();
             prevLeaf.setIsRoot(false);
             newRoot.setIsRoot(true); 
@@ -163,7 +161,6 @@ public class BPTree {
             parentNode2.insertChild(childNodes[i]);
 
         if (parentNode.getIsRoot()) {
-
             InternalNode newRoot = new InternalNode();
             parentNode.setIsRoot(false);
             newRoot.setIsRoot(true);
@@ -182,7 +179,6 @@ public class BPTree {
 
     
     public ArrayList<Address> removeKey(float lowerBound, float upperBound) {
-
         ArrayList<Address> addressOfRecordsToDelete = new ArrayList<>();
         ArrayList<Float> keys;
         LeafNode leafNode;
@@ -211,10 +207,8 @@ public class BPTree {
 
         return addressOfRecordsToDelete;
     }
-
     
     public void cleanLeafNode(LeafNode leafNode) {
-
         if (leafNode.getKeys().size() >= minLeafKeys) {
             cleanParentNode(leafNode.getInternalNode());
             return;
@@ -223,14 +217,18 @@ public class BPTree {
         int required = minLeafKeys - leafNode.getKeys().size();
         int leftExcess = 0;
         int rightExcess = 0;
+
         LeafNode left = (LeafNode) leafNode.getInternalNode().getLeftSiblingNode(leafNode);
         LeafNode right = (LeafNode) leafNode.getInternalNode().getRightSiblingNode(leafNode);
-        InternalNode copy;
+        InternalNode duplicate;
 
-        if (left != null)
+        if (left != null){
             leftExcess += left.getKeys().size() - minLeafKeys;
-        if (right != null)
+        }
+
+        if (right != null){
             rightExcess += right.getKeys().size() - minLeafKeys;
+        }
 
         if (leftExcess + rightExcess >= required) {
             if (left != null) {
@@ -241,7 +239,7 @@ public class BPTree {
                 right.deleteAddress(0);
             }
 
-            copy = leafNode.getInternalNode();
+            duplicate = leafNode.getInternalNode();
         }
 
         else {
@@ -255,11 +253,11 @@ public class BPTree {
                 }
             }
 
-            copy = leafNode.getInternalNode();
+            duplicate = leafNode.getInternalNode();
 
             if (left == null) {
-                if (!copy.getIsRoot()) {
-                    left = searchLeafNode(copy.retrieveSmallestKey() - 1);
+                if (!duplicate.getIsRoot()) {
+                    left = searchLeafNode(duplicate.retrieveSmallestKey() - 1);
                 }
             }
 
@@ -269,13 +267,12 @@ public class BPTree {
             numNodes--;
         }
 
-        cleanParentNode(copy);
+        cleanParentNode(duplicate);
     }
 
     
     public void cleanParentNode(InternalNode parent) {
         if (parent.getIsRoot()) {
-
             if (parent.getChildNodes().size() > 1) {
                 Node child = parent.getChildNode(0);
                 parent.deleteChildNode(child);
@@ -299,11 +296,13 @@ public class BPTree {
         InternalNode rightSiblingNode = (InternalNode) parent.getInternalNode().getRightSiblingNode(parent);
         InternalNode duplicate;
 
-        if (leftSiblingNode != null)
+        if (leftSiblingNode != null){
             leftExcess += leftSiblingNode.getKeys().size() - minInternalKeys;
+        }
 
-        if (rightSiblingNode != null)
+        if (rightSiblingNode != null){
             rightExcess += rightSiblingNode.getKeys().size() - minInternalKeys;
+        }
 
         if (required <= leftExcess + rightExcess) {
             if (leftSiblingNode != null) {
@@ -323,14 +322,11 @@ public class BPTree {
         }
 
         else {
-            
             if (leftSiblingNode == null) {
                 for (int i = 0; i < parent.getChildNodes().size(); i++) {
                     rightSiblingNode.insertChild(parent.getChildNode(i));
                 }
-            }
-
-            else {
+            } else {
                 for (int i = 0; i < parent.getChildNodes().size(); i++) {
                     leftSiblingNode.insertChild(parent.getChildNode(i));
                 }

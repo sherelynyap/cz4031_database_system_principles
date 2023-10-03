@@ -93,9 +93,8 @@ public class Main {
         Scanner sc = new Scanner(System.in);
 
         do {
-            System.out.println(
-                    "======================================================================================");
-            System.out.println("Which option would you like to select?");
+            System.out.println( "=================================================================================");
+            System.out.println("Select your option:");
             System.out.println("(1): Experiment 1");
             System.out.println("(2): Experiment 2");
             System.out.println("(3): Experiment 3");
@@ -103,8 +102,7 @@ public class Main {
             System.out.println("(5): Experiment 5");
             System.out.println("(6): Print B+ Tree");
             System.out.println("(7): Exit");
-            System.out.println(
-                    "======================================================================================");
+            System.out.println( "=================================================================================");
             System.out.print("Your option (Type the number of the option): ");
 
             input = sc.nextLine();
@@ -190,13 +188,15 @@ public class Main {
 
     public void experiment5() throws Exception {
         // Create a deep copy of disk to perform linear scan for comparison
+        System.out.println("Creating a deep copy of disk for comparison...");
         Disk tempDisk = new Disk();
         List<Record> rows = readDataFile(Config.DATA_FILE_PATH);
 
         for (Record row : rows) {
             tempDisk.insertRecord(row);
         }
-        
+        System.out.println();
+
         // Normal deletion
         long startTime = System.nanoTime();
         disk.deleteRecord(index.removeKey(0f, 0.35f));
@@ -210,8 +210,7 @@ public class Main {
         tempDisk.linearScanDeletion(0.35f);
         runtime = System.nanoTime() - startTime;
         
-        System.out.println("The running time of the deletion process is: "
-                + runtime / 1000000 + " ms");
+        System.out.println("The running time of the deletion process is: " + runtime / 1000000 + " ms");
     }
 
     public void printBPTree() {
