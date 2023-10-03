@@ -65,7 +65,7 @@ public class Main {
         }
         reader.close();
 
-        System.out.println("Inserted records from " + directory + " successfully.");
+        System.out.println("Read records from " + directory + " successfully.");
         return records;
     }
 

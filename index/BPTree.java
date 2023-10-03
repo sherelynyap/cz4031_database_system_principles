@@ -12,7 +12,6 @@ public class BPTree {
     Node root;
     int numLevels;
     int numNodes;
-    int numDeletedNodes;
     int maxKeys;
     int minInternalKeys;
     int minLeafKeys;
@@ -80,7 +79,6 @@ public class BPTree {
         float keys[] = new float[maxKeys + 1];
         LeafNode newLeaf = new LeafNode();
 
-        System.out.print(addresses.size());
         int i;
         for (i = 0; i < maxKeys; i++) {
             keys[i] = prevLeaf.getKey(i);
