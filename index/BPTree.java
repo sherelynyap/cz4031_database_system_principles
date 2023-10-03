@@ -32,7 +32,7 @@ public class BPTree {
         numNodes = 0;
     }
 
-    public void insert(float key, Address address) {
+    public void insertKey(float key, Address address) {
         this.insertLeafNode(this.searchLeafNode(key), key, address);
     }
    

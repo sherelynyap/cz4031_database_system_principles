@@ -81,7 +81,7 @@ public class Main {
         List<Record> rows = readDataFile(Const.DATA_FILE_PATH);
         for (Record row : rows) {
             Address address = disk.insertRecord(row);
-            index.insert(row.FG_PCT_home, address);
+            index.insertKey(row.FG_PCT_home, address);
         }
 
         System.out.println("Database and B+ tree index created successfully.");
