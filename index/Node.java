@@ -23,10 +23,6 @@ public class Node {
         this.internalNode = updateInternalNode;
     }
 
-    public ArrayList<Float> getKeys() {
-        return this.keysSet;
-    }
-
     public float getKey(int targetIndex) {
         return keysSet.get(targetIndex);
     }
@@ -43,6 +39,10 @@ public class Node {
 
         }
         return targetIndex;
+    }
+
+    public ArrayList<Float> getKeys() {
+        return this.keysSet;
     }
 
     public int binarySearch(float newKey) {
@@ -71,20 +71,20 @@ public class Node {
         return (low + high) >>> 1;
     }
 
-    public boolean getIsLeafNode() {
-        return this.isLeaf;
-    }
-
-    public void setIsLeafNode(boolean leafBool) {
-        this.isLeaf = leafBool;
-    }
-
-    public boolean getIsRootNode() {
+    public boolean getIsRoot() {
         return this.isRoot;
     }
 
-    public void setIsRootNode(boolean rootBool) {
+    public void setIsRoot(boolean rootBool) {
         this.isRoot = rootBool;
+    }
+
+    public boolean getIsLeaf() {
+        return this.isLeaf;
+    }
+
+    public void setIsLeaf(boolean leafBool) {
+        this.isLeaf = leafBool;
     }
 
     public void deleteKey(int targetIndex) {
@@ -92,7 +92,11 @@ public class Node {
     }
 
     public void deleteAllKeys() {
-        doClearKeys();
+        resetKeys();
+    }
+
+    public void resetKeys() {
+        this.keysSet = new ArrayList<>();
     }
 
     public float retrieveSmallestKey() {
@@ -102,7 +106,7 @@ public class Node {
             return this.getKey(firstIndex);
         } else {
             temp = (InternalNode) this;
-            while (temp.getChildNode(firstIndex).getIsLeafNode() == false) {
+            while (temp.getChildNode(firstIndex).getIsLeaf() == false) {
                 temp = (InternalNode) temp.getChildNode(firstIndex);
             }
             return temp.getChildNode(firstIndex).getKey(firstIndex);
@@ -122,12 +126,8 @@ public class Node {
             tempLeaf.setNextNode(null);
             tempLeaf.deleteAddresses();
         }
-        doClearKeys();
-        this.setIsLeafNode(true);
-        this.setIsRootNode(true);
-    }
-
-    public void doClearKeys() {
-        this.keysSet = new ArrayList<>();
+        resetKeys();
+        this.setIsLeaf(true);
+        this.setIsRoot(true);
     }
 }

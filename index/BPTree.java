@@ -29,7 +29,7 @@ public class BPTree {
         root = new LeafNode();
         numLevels = 1;
         numNodes = 1;
-        root.setIsRootNode(true);
+        root.setIsRoot(true);
 
         numNodes = 0;
     }
@@ -39,7 +39,7 @@ public class BPTree {
     }
    
     public LeafNode searchLeafNode(float key) {
-        if (this.root.getIsLeafNode())
+        if (this.root.getIsLeaf())
             return (LeafNode) root;
 
         InternalNode internalNode = (InternalNode) root;
@@ -56,7 +56,7 @@ public class BPTree {
 
             Node child = internalNode.getChildNode(i);
 
-            if (child.getIsLeafNode()) {
+            if (child.getIsLeaf()) {
                 return (LeafNode) child;
             } else {
                 internalNode = (InternalNode) child;
@@ -112,11 +112,11 @@ public class BPTree {
         newLeaf.setNextNode(prevLeaf.getNextNode());
         prevLeaf.setNextNode(newLeaf);
 
-        if (prevLeaf.getIsRootNode()) {
+        if (prevLeaf.getIsRoot()) {
 
             InternalNode newRoot = new InternalNode();
-            prevLeaf.setIsRootNode(false);
-            newRoot.setIsRootNode(true); 
+            prevLeaf.setIsRoot(false);
+            newRoot.setIsRoot(true); 
             newRoot.insertChild(prevLeaf); 
             newRoot.insertChild(newLeaf); 
             root = newRoot;
@@ -136,7 +136,7 @@ public class BPTree {
         float keys[] = new float[maxKeys + 2];
         float key = childNode.retrieveSmallestKey();
         InternalNode parentNode2 = new InternalNode();
-        parentNode2.setIsRootNode(false);
+        parentNode2.setIsRoot(false);
 
         for (int i = 0; i < maxKeys + 1; i++) {
             childNodes[i] = parentNode.getChildNode(i);
@@ -162,11 +162,11 @@ public class BPTree {
         for (int i = minInternalKeys + 2; i < maxKeys + 2; i++)
             parentNode2.insertChild(childNodes[i]);
 
-        if (parentNode.getIsRootNode()) {
+        if (parentNode.getIsRoot()) {
 
             InternalNode newRoot = new InternalNode();
-            parentNode.setIsRootNode(false);
-            newRoot.setIsRootNode(true);
+            parentNode.setIsRoot(false);
+            newRoot.setIsRoot(true);
             newRoot.insertChild(parentNode);
             newRoot.insertChild(parentNode2);
             root = newRoot;
@@ -201,7 +201,7 @@ public class BPTree {
                 if (Float.compare(keys.get(i), key) == 0) {
                     addressOfRecordsToDelete.add(leafNode.getAddress(i));
                     leafNode.deleteAddress(i);
-                    if (!leafNode.getIsRootNode()) {
+                    if (!leafNode.getIsRoot()) {
                         cleanLeafNode(leafNode);
                     }
                     break;
@@ -258,7 +258,7 @@ public class BPTree {
             copy = leafNode.getInternalNode();
 
             if (left == null) {
-                if (!copy.getIsRootNode()) {
+                if (!copy.getIsRoot()) {
                     left = searchLeafNode(copy.retrieveSmallestKey() - 1);
                 }
             }
@@ -274,7 +274,7 @@ public class BPTree {
 
     
     public void cleanParentNode(InternalNode parent) {
-        if (parent.getIsRootNode()) {
+        if (parent.getIsRoot()) {
 
             if (parent.getChildNodes().size() > 1) {
                 Node child = parent.getChildNode(0);
@@ -283,7 +283,7 @@ public class BPTree {
                 return;
             } else {
                 root = parent.getChildNode(0);
-                parent.getChildNode(0).setIsRootNode(true);
+                parent.getChildNode(0).setIsRoot(true);
                 parent.deleteNode();
                 numNodes--;
                 numLevels--;
@@ -349,7 +349,7 @@ public class BPTree {
         Node currNode = root;
         InternalNode internalNode;
 
-        while (!currNode.getIsLeafNode()) {
+        while (!currNode.getIsLeaf()) {
             internalNode = (InternalNode) currNode;
             for (int i = 0; i < internalNode.getKeys().size(); i++) {
                 if (Float.compare(lowerBound, internalNode.getKey(i)) <= 0) {
@@ -394,7 +394,7 @@ public class BPTree {
         Node currNode = root;
         InternalNode internalNode;
 
-        while (!currNode.getIsLeafNode()) {
+        while (!currNode.getIsLeaf()) {
             internalNode = (InternalNode) currNode;
             for (int i = 0; i < internalNode.getKeys().size(); i++) {
                 if (Float.compare(searchingKey, internalNode.getKey(i)) <= 0) {
@@ -464,7 +464,7 @@ public class BPTree {
         InternalNode tempIntNode;
         Node thisNode = root;
 
-        while (thisNode.getIsLeafNode() == false) {
+        while (thisNode.getIsLeaf() == false) {
             tempIntNode = (InternalNode) thisNode;
             int numKeys = tempIntNode.getKeys().size();
             int lastIndex = numKeys - 1;
@@ -558,7 +558,7 @@ public class BPTree {
             while (Q1.size() > 0) {
                 Node temp = Q1.get(0);
                 Q1.remove(0);
-                if (temp.getIsLeafNode() == false) {
+                if (temp.getIsLeaf() == false) {
                 
                     InternalNode temp2 = (InternalNode) temp;
                     ArrayList<Node> children = temp2.getChildNodes();
@@ -586,7 +586,7 @@ public class BPTree {
                 Node temp = Q2.get(0);
 
                 Q2.remove(0);
-                if (temp.getIsLeafNode() == false) {
+                if (temp.getIsLeaf() == false) {
                   
                     InternalNode temp2 = (InternalNode) temp;
                     ArrayList<Node> children = temp2.getChildNodes();

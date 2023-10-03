@@ -7,17 +7,17 @@ public class InternalNode extends Node {
 
     public InternalNode() {
         super();
-        this.setIsLeafNode(false);
-        this.setIsRootNode(false);
+        this.setIsLeaf(false);
+        this.setIsRoot(false);
         childNodesSet = new ArrayList<Node>();
-    }
-
-    public ArrayList<Node> getChildNodes() {
-        return this.childNodesSet;
     }
 
     public Node getChildNode(int targetIndex) {
         return childNodesSet.get(targetIndex);
+    }
+
+    public ArrayList<Node> getChildNodes() {
+        return this.childNodesSet;
     }
 
     public int insertChild(Node newChild) {
@@ -62,14 +62,6 @@ public class InternalNode extends Node {
         resetChild();
     }
 
-    public void deleteAllChildNodes() {
-        resetChild();
-    }
-
-    public void resetChild() {
-        this.childNodesSet = new ArrayList<Node>();
-    }
-
     public void deleteChildNode(Node targetChild) {
         childNodesSet.remove(targetChild);
         this.deleteAllKeys();
@@ -82,13 +74,12 @@ public class InternalNode extends Node {
         }
     }
 
-    public Node getRightSiblingNode(Node targetNode) {
-        Node rightSib = null;
-        if (childNodesSet.indexOf(targetNode) < childNodesSet.size() - 1) {
-            int targetIndex = childNodesSet.indexOf(targetNode) + 1;
-            rightSib = childNodesSet.get(targetIndex);
-        }
-        return rightSib;
+    public void deleteAllChildNodes() {
+        resetChild();
+    }
+
+    public void resetChild() {
+        this.childNodesSet = new ArrayList<Node>();
     }
 
     public Node getLeftSiblingNode(Node targetNode) {
@@ -100,4 +91,12 @@ public class InternalNode extends Node {
         return leftSib;
     }
 
+    public Node getRightSiblingNode(Node targetNode) {
+        Node rightSib = null;
+        if (childNodesSet.indexOf(targetNode) < childNodesSet.size() - 1) {
+            int targetIndex = childNodesSet.indexOf(targetNode) + 1;
+            rightSib = childNodesSet.get(targetIndex);
+        }
+        return rightSib;
+    }
 }

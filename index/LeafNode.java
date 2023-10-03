@@ -10,14 +10,10 @@ public class LeafNode extends Node {
 
     public LeafNode() {
         super();
-        super.setIsRootNode(false);
-        super.setIsLeafNode(true);
+        super.setIsLeaf(true);
+        super.setIsRoot(false);
         this.addressesSet = new ArrayList<Address>();
         this.nextLeafNode = null;
-    }
-
-    public ArrayList<Address> getAddresses() {
-        return this.addressesSet;
     }
 
     public Address getAddress(int targetIndex) {
@@ -50,8 +46,16 @@ public class LeafNode extends Node {
         addressesSet.remove(targetIndex);
     }
 
+    public ArrayList<Address> getAddresses() {
+        return this.addressesSet;
+    }
+
     public void deleteAddresses() {
         resetAddresses();
+    }
+
+    public void resetAddresses() {
+        this.addressesSet = new ArrayList<Address>();
     }
 
     public LeafNode getNextNode() {
@@ -66,9 +70,4 @@ public class LeafNode extends Node {
         deleteAllKeys();
         resetAddresses();
     }
-
-    public void resetAddresses() {
-        this.addressesSet = new ArrayList<Address>();
-    }
-
 }
