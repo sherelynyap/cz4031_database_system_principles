@@ -1,4 +1,4 @@
-package Storage;
+package storage;
 
 public class Address {
     public int blockID;

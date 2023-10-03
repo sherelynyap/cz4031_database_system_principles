@@ -1,6 +1,6 @@
-package Storage;
+package storage;
 
-import Config.Config;
+import config.Config;
 
 public class Block {
     public static int maxRecordCount = (int) Math.floor(Config.BLOCK_SIZE / Record.size);

@@ -1,8 +1,9 @@
-package Index;
-
-import Storage.Address;
+package index;
 
 import java.util.ArrayList;
+
+import storage.Address;
+
 import java.lang.Float;
 
 public class BPTree {

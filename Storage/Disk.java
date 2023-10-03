@@ -1,9 +1,10 @@
-package Storage;
+package storage;
 
-import Config.Config;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+
+import config.Config;
 
 public class Disk {
     public static final int maxBlockSize = (int) Math.floor(Config.DISK_CAPACITY / Config.BLOCK_SIZE);

@@ -1,7 +1,8 @@
-package Index;
+package index;
 
-import Storage.Address;
 import java.util.ArrayList;
+
+import storage.Address;
 
 public class LeafNode extends Node {
     private ArrayList<Address> addressesSet;

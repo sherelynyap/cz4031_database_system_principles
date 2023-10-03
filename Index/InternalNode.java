@@ -1,4 +1,4 @@
-package Index;
+package index;
 
 import java.util.ArrayList;
 

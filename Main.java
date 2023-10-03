@@ -3,14 +3,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
-import Index.BPTree;
-
-import Storage.Disk;
-import Storage.Address;
-import Storage.Block;
-import Storage.Record;
-
-import Config.Config;
+import config.Config;
+import index.BPTree;
+import storage.Address;
+import storage.Block;
+import storage.Disk;
+import storage.Record;
 
 public class Main {
     private Disk disk;
