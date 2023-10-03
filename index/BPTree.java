@@ -4,8 +4,6 @@ import java.util.ArrayList;
 
 import storage.Address;
 
-import java.lang.Float;
-
 public class BPTree {
     // Pointer = 8B, Key = 4B, Bool = 1B
     private static final int POINTER_SIZE = 8;
