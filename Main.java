@@ -3,7 +3,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
-import config.Config;
+import config.Const;
 import index.BPTree;
 import storage.Address;
 import storage.Block;
@@ -75,10 +75,10 @@ public class Main {
 
         // Initialization
         disk = new Disk();
-        index = new BPTree(Config.BLOCK_SIZE);
+        index = new BPTree(Const.BLOCK_SIZE);
 
         // Insertion
-        List<Record> rows = readDataFile(Config.DATA_FILE_PATH);
+        List<Record> rows = readDataFile(Const.DATA_FILE_PATH);
         for (Record row : rows) {
             Address address = disk.insertRecord(row);
             index.insert(row.FG_PCT_home, address);
@@ -190,8 +190,7 @@ public class Main {
         // Create a deep copy of disk to perform linear scan for comparison
         System.out.println("Creating a deep copy of disk for comparison...");
         Disk tempDisk = new Disk();
-        List<Record> rows = readDataFile(Config.DATA_FILE_PATH);
-
+        List<Record> rows = readDataFile(Const.DATA_FILE_PATH);
         for (Record row : rows) {
             tempDisk.insertRecord(row);
         }

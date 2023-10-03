@@ -1,9 +1,9 @@
 package storage;
 
-import config.Config;
+import config.Const;
 
 public class Block {
-    public static int maxRecordCount = (int) Math.floor(Config.BLOCK_SIZE / Record.size);
+    public static int maxRecordCount = (int) Math.floor(Const.BLOCK_SIZE / Record.size);
     int recordCount;
     Record[] records;
 

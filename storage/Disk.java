@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import config.Config;
+import config.Const;
 
 public class Disk {
-    public static final int maxBlockSize = (int) Math.floor(Config.DISK_CAPACITY / Config.BLOCK_SIZE);
+    public static final int maxBlockSize = (int) Math.floor(Const.DISK_CAPACITY / Const.BLOCK_SIZE);
 
     int blockCount;
     int recordCount;
