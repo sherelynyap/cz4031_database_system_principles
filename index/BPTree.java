@@ -314,10 +314,10 @@ public class BPTree {
         if (right != null) {
             rightExcess += right.getKeys().size() - minLeafKeys;
         }
-        
+
         // Case 2: Borrow key from siblings if possible, check the left sibling first
-        if (leftExcess >= required || rightExcess >= required) {
-            if (leftExcess >= required) {
+        if (leftExcess + rightExcess >= required) {
+            if (left != null && leftExcess > 0) {
                 for (int i = 0; i < left.getAddress(left.getKeys().size() - 1).size(); i++) {
                     leafNode.setAddress(left.getKey(left.getKeys().size() - 1),
                             left.getAddress(left.getKeys().size() - 1).get(i));
@@ -408,42 +408,56 @@ public class BPTree {
             rightExcess += rightSiblingNode.getKeys().size() - minInternalKeys;
         }
 
-        // Case 1: If enough keys, required will be negative, thus no need to borrow the node from siblings (weird)
-        // Case 2: Borrow key from siblings if possible, check the left sibling first
-        if (required <= leftExcess || required <= rightExcess) {
-            if (leftExcess >= required) {
-                for (int i = 0; i < required; i++) { //shld not be a for loop here
-                    parent.insertChildToFront(leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
-                    leftSiblingNode.deleteChildNode(
-                            leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
-                }
-
-            } else {
-                for (int i = 0; i < required; i++) {
-                    parent.insertChild(rightSiblingNode.getChildNode(0));
-                    rightSiblingNode.deleteChildNode(rightSiblingNode.getChildNode(0));
-                }
+        // Case 1: If enough keys, no need to borrow or merge but need to update the key
+        if (required <= 0) {
+            ArrayList<Node> childNodes = parent.getChildNodes();
+            ArrayList<Float> keys = parent.getKeys();
+            parent.deleteAllKeys();
+            for (int i = 0; i < keys.size(); i++) {
+                Node childNode = parent.getChildNode(i + 1);
+                System.out.println("Required<=0");
+                float key = childNode.retrieveSmallestKey();
+                parent.setKey(key);
             }
             duplicate = parent.getInternalNode();
-        }
-
-        // Case 3: Otherwise, merge with siblings, check the left sibling first
-        else {
-            if (leftSiblingNode == null) {
-                for (int i = 0; i < parent.getChildNodes().size(); i++) {
-                    rightSiblingNode.insertChild(parent.getChildNode(i));
+        } else {
+            // Case 2: Borrow key from siblings if possible, check the left sibling first
+            if (required <= leftExcess + rightExcess) {
+                if (leftSiblingNode != null && leftExcess > 0) {
+                    for (int i = 0; i < required; i++) {
+                        parent.insertChildToFront(
+                                leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
+                        leftSiblingNode.deleteChildNode(
+                                leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
+                    }
+                } else {
+                    for (int i = 0; i < required; i++) {
+                        parent.insertChild(rightSiblingNode.getChildNode(0));
+                        rightSiblingNode.deleteChildNode(rightSiblingNode.getChildNode(0));
+                    }
                 }
-            } else {
-                for (int i = 0; i < parent.getChildNodes().size(); i++) {
-                    leftSiblingNode.insertChild(parent.getChildNode(i));
-                }
+                duplicate = parent.getInternalNode();
             }
 
-            duplicate = parent.getInternalNode();
+            else {
+                // Case 3: Otherwise, merge with siblings, check the left sibling first
+                if (leftSiblingNode == null) {
+                    for (int i = 0; i < parent.getChildNodes().size(); i++) {
+                        rightSiblingNode.insertChild(parent.getChildNode(i));
+                    }
+                } else {
+                    for (int i = 0; i < parent.getChildNodes().size(); i++) {
+                        leftSiblingNode.insertChild(parent.getChildNode(i));
+                    }
+                }
 
-            parent.deleteNode();
-            numNodes--;
+                duplicate = parent.getInternalNode();
+
+                parent.deleteNode();
+                numNodes--;
+            }
         }
+
         cleanParentNode(duplicate);
     }
 
