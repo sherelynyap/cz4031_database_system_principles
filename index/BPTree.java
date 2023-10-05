@@ -19,8 +19,9 @@ public class BPTree {
     public BPTree(int blkSize) {
         // InternalNode_ptr(8B) + isRoot(1B) + isLeaf(1B) + 4n + 8(n+1) <= blkSize
         // Calculation for n, maximum number of keys in a node
-        maxKeys = (blkSize - 2 * POINTER_SIZE - 2 * BOOL_SIZE) / (POINTER_SIZE +
-                KEY_SIZE);
+        // maxKeys = (blkSize - 2 * POINTER_SIZE - 2 * BOOL_SIZE) / (POINTER_SIZE +
+        // KEY_SIZE);
+        maxKeys = 3;
         minInternalKeys = (int) Math.floor(maxKeys / 2);
         minLeafKeys = (int) Math.floor((maxKeys + 1) / 2);
 
@@ -313,7 +314,7 @@ public class BPTree {
         }
 
         if (leftExcess + rightExcess >= required) {
-            if (left != null) {
+            if (left != null && leftExcess > 0) {
                 for (int i = 0; i < left.getAddress(left.getKeys().size() - 1).size(); i++) {
                     leafNode.setAddress(left.getKey(left.getKeys().size() - 1),
                             left.getAddress(left.getKeys().size() - 1).get(i));
