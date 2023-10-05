@@ -16,14 +16,17 @@ public class Node {
     }
 
     public InternalNode getInternalNode() {
+        // Return the parent node.
         return this.internalNode;
     }
 
     public void setInternalNode(InternalNode updateInternalNode) {
+        // Setter for the parent node.
         this.internalNode = updateInternalNode;
     }
 
     public float getKey(int targetIndex) {
+        // retrieve the key based on index
         return keysSet.get(targetIndex);
     }
 
@@ -31,6 +34,7 @@ public class Node {
         int keysSize = keysSet.size();
         int targetIndex = 0;
         if (keysSize == 0) {
+            // If this node has no key, just insert this new key
             keysSet.add(newKey);
         } else {
             if (keysSet.contains(newKey)) {
@@ -47,10 +51,12 @@ public class Node {
     }
 
     public ArrayList<Float> getKeys() {
+        // Return all the keys
         return this.keysSet;
     }
 
     public int binarySearch(float newKey) {
+        // use binary search to find the newkey
         int keysSize = keysSet.size();
         int highPtr = keysSize - 1;
         int lowPtr = 0;
@@ -73,43 +79,54 @@ public class Node {
     }
 
     public int findMid(int low, int high) {
+        // Find middle value
         return (low + high) >>> 1;
     }
 
     public boolean getIsRoot() {
+        // Getter for isRoot
         return this.isRoot;
     }
 
     public void setIsRoot(boolean rootBool) {
+        // Setter for isRoot
         this.isRoot = rootBool;
     }
 
     public boolean getIsLeaf() {
+        // Getter for isLeaf
         return this.isLeaf;
     }
 
     public void setIsLeaf(boolean leafBool) {
+        // Setter for isLeaf
         this.isLeaf = leafBool;
     }
 
     public void deleteKey(int targetIndex) {
+        // Delete a key based on index
         this.keysSet.remove(targetIndex);
     }
 
     public void deleteAllKeys() {
+        // Delete all the keys
         resetKeys();
     }
 
     public void resetKeys() {
+        // Delete all the keys
         this.keysSet = new ArrayList<>();
     }
 
     public float retrieveSmallestKey() {
+        // Find the smallest key
         InternalNode temp;
         int firstIndex = 0;
         if (isLeaf == true) {
+            // If this is a leaf, the leftmost key is the smallest key
             return this.getKey(firstIndex);
         } else {
+            // If this is not a leaf, keep travelling LEFT of its childnode
             temp = (InternalNode) this;
             while (temp.getChildNode(firstIndex).getIsLeaf() == false) {
                 temp = (InternalNode) temp.getChildNode(firstIndex);
@@ -119,6 +136,7 @@ public class Node {
     }
 
     public void deleteNode() {
+        // Delete the node
         if (this.internalNode != null) {
             this.internalNode.deleteChildNode(this);
             this.internalNode = null;

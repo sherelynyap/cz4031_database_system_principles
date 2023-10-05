@@ -18,6 +18,7 @@ public class BPTree {
 
     public BPTree(int blkSize) {
         // InternalNode_ptr(8B) + isRoot(1B) + isLeaf(1B) + 4n + 8(n+1) <= blkSize
+        // Calculation for n, maximum number of keys in a node
         maxKeys = (blkSize - 2 * POINTER_SIZE - 2 * BOOL_SIZE) / (POINTER_SIZE +
                 KEY_SIZE);
         minInternalKeys = (int) Math.floor(maxKeys / 2);
@@ -32,13 +33,18 @@ public class BPTree {
     }
 
     public void insertKey(float key, Address address) {
+        // Search the leafNode for a given key.
+        // Insert the key and address to the leafNode.
         this.insertLeafNode(this.searchLeafNode(key), key, address);
     }
 
     public LeafNode searchLeafNode(float key) {
         if (this.root.getIsLeaf())
+            // If this root is a leafNode implies this is a 1-level tree, the key should be
+            // inserted into this rootNode.
             return (LeafNode) root;
 
+        // Search for the leafNode.
         InternalNode internalNode = (InternalNode) root;
         while (true) {
             ArrayList<Float> keys = internalNode.getKeys();
@@ -47,6 +53,7 @@ public class BPTree {
 
             for (i = 0; i < keys.size(); i++) {
                 if (key < keys.get(i)) {
+                    // Get appropraite child node to travel by checking if keys.get(i)>key
                     break;
                 }
             }
@@ -54,77 +61,106 @@ public class BPTree {
             Node child = internalNode.getChildNode(i);
 
             if (child.getIsLeaf()) {
+                // leafNode where key should be inserted is found.
                 return (LeafNode) child;
             } else {
+                // leafNode is not found, hence continue to traverse downwards.
                 internalNode = (InternalNode) child;
             }
         }
     }
 
     public void insertLeafNode(LeafNode leafNode, float key, Address address) {
-        // Check if the key exist
+        // Check if the key exist.
         if (leafNode.getKeys().contains(key) == false && leafNode.getKeys().size() >= maxKeys) {
-            // If does not exist and need to split
+            // If does not exist and need to split.
             splitLeafNode(leafNode, key, address);
         } else {
-            // If does not need splitting
+            // If does not need splitting, just insertion will do.
             leafNode.setAddress(key, address);
         }
     }
 
     public void splitLeafNode(LeafNode prevLeaf, float key, Address address) {
         // Only called when need splitting due to the key and address
-        // Address addresses[] = new Address[maxKeys + 1];
+        // Generate a local ArrayList of ArrayLists to store addresses and keys, with
+        // the intention of preserving the original keys and accommodating new ones for
+        // insertion.
         ArrayList<ArrayList<Address>> addresses = new ArrayList<ArrayList<Address>>();
         float keys[] = new float[maxKeys + 1];
         LeafNode newLeaf = new LeafNode();
 
+        // Makes a copy of the keys and addresses
         int i;
         for (i = 0; i < maxKeys; i++) {
             keys[i] = prevLeaf.getKey(i);
             addresses.add(prevLeaf.getAddress(i));
         }
 
+        // A flag to check if the key is inserted
         boolean inserted = false;
+
+        // Some temporary and dummy linked list for data manupulation
         ArrayList<Address> addressLL = new ArrayList<Address>();
         ArrayList<Address> dummyLL = new ArrayList<Address>();
         addresses.add(dummyLL);
         addressLL.add(address);
+
+        // Comparing the new key intended for insertion with the keys present in the old
+        // leaf, starting from the end of the keys array
         for (i = maxKeys - 1; i >= 0; i--) {
             if (Float.compare(keys[i], key) <= 0) {
+                // If the new key surpasses the existing key in value, it's placed on the
+                // right side.
                 inserted = true;
                 i++;
                 keys[i] = key;
                 addresses.set(i, addressLL);
                 break;
             }
+            // If the new key is smaller than the existing key, all keys larger than the new
+            // key are shifted to the right to create room for the new key, which is then
+            // inserted into its appropraite position.
             keys[i + 1] = keys[i];
             addresses.set(i + 1, addresses.get(i));
         }
+        // Check if the new key should be inserted at the leftmost position.
         if (inserted == false) {
             keys[0] = key;
             addresses.set(0, addressLL);
         }
 
+        // Erase all keys and restore all addresses to their original state in the old
+        // leaf.
         prevLeaf.doSeparation();
 
+        // Reinsert the most recent keys and addresses from the local array into the two
+        // leaf nodes. When the old leaf node becomes full, proceed with the insertion
+        // into the new leaf node.
         for (i = 0; i < minLeafKeys; i++) {
             ArrayList<Address> tempLL = addresses.get(i);
             for (int j = 0; j < tempLL.size(); j++) {
                 prevLeaf.setAddress(keys[i], tempLL.get(j));
             }
         }
-
         for (i = minLeafKeys; i < maxKeys + 1; i++) {
             ArrayList<Address> tempLL = addresses.get(i);
             for (int j = 0; j < tempLL.size(); j++) {
                 newLeaf.setAddress(keys[i], tempLL.get(j));
             }
         }
+
+        // After distributing the keys and addresses between the old and new leaf nodes,
+        // their pointers are modified. The old leaf node now points to the
+        // new leaf node, and the new leaf node is linked to the previous next node
         newLeaf.setNextNode(prevLeaf.getNextNode());
         prevLeaf.setNextNode(newLeaf);
 
         if (prevLeaf.getIsRoot()) {
+            // If the old leaf node served as the root node.
+            // A new internal node is created because every pair of nodes requires a parent
+            // node.The old root node is transformed into a regular node, with the newly
+            // created internal node as its parent, now acting as the new root node.
             InternalNode newRoot = new InternalNode();
             prevLeaf.setIsRoot(false);
             newRoot.setIsRoot(true);
@@ -133,27 +169,42 @@ public class BPTree {
             root = newRoot;
             numLevels++;
         } else if (prevLeaf.getInternalNode().getKeys().size() < maxKeys) {
+            // If the old leaf node was not the root node and has enough space for the new
+            // leaf node, the new leaf node is added to the parent node of the old leaf
+            // node.
             prevLeaf.getInternalNode().insertChild(newLeaf);
         } else {
+            // If the old leaf node was not the root node and lacks space for the new leaf
+            // node.
+            // Node separation process occur to generate a new parent node.
             splitParentNode(prevLeaf.getInternalNode(), newLeaf);
         }
 
+        // Increment the number of nodes
         numNodes++;
     }
 
     public void splitParentNode(InternalNode parentNode, Node childNode) {
+
+        // Generate two fresh arrays, 'childNodes' and 'keys, to accommodate children
+        // and keys.
+        // Obtain the smallest key value from childNode.
+        // Create parentNode2 as an internal node, distinct from being the root node.
         Node childNodes[] = new Node[maxKeys + 2];
         float keys[] = new float[maxKeys + 2];
         float key = childNode.retrieveSmallestKey();
         InternalNode parentNode2 = new InternalNode();
         parentNode2.setIsRoot(false);
 
+        // Makes a copy of the current children and smallest keys.
         for (int i = 0; i < maxKeys + 1; i++) {
             childNodes[i] = parentNode.getChildNode(i);
             keys[i] = childNodes[i].retrieveSmallestKey();
         }
 
+        // Add the smallest key from the nodes into the sorted array.
         for (int i = maxKeys; i >= 0; i--) {
+
             if (Float.compare(keys[i], key) <= 0) {
                 i++;
                 keys[i] = key;
@@ -165,14 +216,22 @@ public class BPTree {
             childNodes[i + 1] = childNodes[i];
         }
 
+        // Clear and empty out parentNode
         parentNode.doSeparation();
 
+        // The parentNode is re-populated with the first [minNoOfInternalKeys + 2]
+        // children from the childNodes, while the remaining children are
+        // allocated to parentNode2.
         for (int i = 0; i < minInternalKeys + 2; i++)
             parentNode.insertChild(childNodes[i]);
         for (int i = minInternalKeys + 2; i < maxKeys + 2; i++)
             parentNode2.insertChild(childNodes[i]);
 
+        // Verifies if a parentNode is a root
         if (parentNode.getIsRoot()) {
+            // If parentNode is a root.
+            // A new root is created to serve as the root of B+Tree with children parentNode
+            // and parentNode2.
             InternalNode newRoot = new InternalNode();
             parentNode.setIsRoot(false);
             newRoot.setIsRoot(true);
@@ -181,34 +240,46 @@ public class BPTree {
             root = newRoot;
             numLevels++;
         } else if (parentNode.getInternalNode().getKeys().size() < maxKeys) {
+            // If parentNode is not the root and there is still available space for key
+            // insertion.
+            // Add parentNode2 as its child
             parentNode.getInternalNode().insertChild(parentNode2);
         } else {
+            // If parentNode is full.
+            // Recursively call splitParentNode() to restructure B+tree
             splitParentNode(parentNode.getInternalNode(), parentNode2);
         }
 
+        // Increment number of nodes
         numNodes++;
     }
 
     public ArrayList<Address> removeKey(float lowerBound, float upperBound) {
+        // Create temporary memory for data manipulation
         ArrayList<Address> addressOfRecordsToDelete = new ArrayList<>();
         ArrayList<Float> keys;
         LeafNode leafNode;
 
+        // Get keys of records to be deleted
         ArrayList<Float> keyOfRecordsToDelete = retrieveRangeOfKeys(lowerBound, upperBound);
 
         int length = keyOfRecordsToDelete.size();
-
         for (int j = 0; j < length; j++) {
-
+            // Get one of the keys from keyOfRecordsToDelete
             float key = keyOfRecordsToDelete.get(j);
+            // Obtain the leafNode where this key is located
             leafNode = searchLeafNode(key);
+            // Retrieve the all the keys of this leafNode
             keys = leafNode.getKeys();
 
+            // Find and delete the key along with the addresses in this leafNode
             for (int i = 0; i < keys.size(); i++) {
                 if (Float.compare(keys.get(i), key) == 0) {
                     addressOfRecordsToDelete.addAll(leafNode.getAddress(i));
                     leafNode.deleteAddress(i);
                     if (!leafNode.getIsRoot()) {
+                        // If this is not a root.
+                        // Call cleanLeafNode to check if cleaning is needed
                         cleanLeafNode(leafNode);
                     }
                     break;
@@ -557,6 +628,7 @@ public class BPTree {
     }
 
     public void printInfo() {
+        // Print out the infomation of the B+Tree
         InternalNode rootDuplicate = (InternalNode) root;
 
         System.out.println("The parameter n of the B+ tree: " + this.maxKeys);
@@ -571,11 +643,16 @@ public class BPTree {
         System.out.printf("minIntenalKeys = %d\n", minInternalKeys);
         System.out.printf("minLeafKeys = %d\n", minLeafKeys);
 
+        // Create a temporary Queue Data structure, Q1 & Q2 for BFS
         ArrayList<Node> Q1 = new ArrayList<>();
         Q1.add(root);
         ArrayList<Node> Q2 = new ArrayList<>();
 
+        // Keep traversing until both Queues are empty
         while (Q1.size() > 0 || Q2.size() > 0) {
+            // While Q1 is not empty.
+            // Pop a node from Q1 and put its children into Q2 if this is not a leafNode.
+            // Print out the keys of the node
             while (Q1.size() > 0) {
                 Node temp = Q1.get(0);
                 Q1.remove(0);
@@ -601,6 +678,9 @@ public class BPTree {
             System.out.println(" ");
             System.out.println(" ");
 
+            // While Q2 is not empty.
+            // Pop a node from Q2 and put its children into Q1 if this is not a leafNode.
+            // Print out the keys of the node
             while (Q2.size() > 0) {
 
                 Node temp = Q2.get(0);
