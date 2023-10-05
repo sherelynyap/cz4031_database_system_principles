@@ -19,9 +19,8 @@ public class BPTree {
     public BPTree(int blkSize) {
         // InternalNode_ptr(8B) + isRoot(1B) + isLeaf(1B) + 4n + 8(n+1) <= blkSize
         // Calculation for n, maximum number of keys in a node
-        // maxKeys = (blkSize - 2 * POINTER_SIZE - 2 * BOOL_SIZE) / (POINTER_SIZE +
-        // KEY_SIZE);
-        maxKeys = 3;
+        maxKeys = (blkSize - 2 * POINTER_SIZE - 2 * BOOL_SIZE) / (POINTER_SIZE +
+                KEY_SIZE);
         minInternalKeys = (int) Math.floor(maxKeys / 2);
         minLeafKeys = (int) Math.floor((maxKeys + 1) / 2);
 
@@ -397,40 +396,54 @@ public class BPTree {
         if (rightSiblingNode != null) {
             rightExcess += rightSiblingNode.getKeys().size() - minInternalKeys;
         }
-
-        if (required <= leftExcess + rightExcess) {
-            if (leftSiblingNode != null) {
-                for (int i = 0; i < required; i++) {
-                    parent.insertChildToFront(leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
-                    leftSiblingNode.deleteChildNode(
-                            leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
-                }
-
-            } else {
-                for (int i = 0; i < required; i++) {
-                    parent.insertChild(rightSiblingNode.getChildNode(0));
-                    rightSiblingNode.deleteChildNode(rightSiblingNode.getChildNode(0));
-                }
+        if (required <= 0) {
+            ArrayList<Node> childNodes = parent.getChildNodes();
+            ArrayList<Float> keys = parent.getKeys();
+            parent.deleteAllKeys();
+            for (int i = 0; i < keys.size(); i++) {
+                Node childNode = parent.getChildNode(i + 1);
+                System.out.println("Required<=0");
+                float key = childNode.retrieveSmallestKey();
+                parent.setKey(key);
             }
             duplicate = parent.getInternalNode();
-        }
+        } else {
+            if (required <= leftExcess + rightExcess) {
+                if (leftSiblingNode != null && leftExcess > 0) {
+                    for (int i = 0; i < required; i++) {
+                        parent.insertChildToFront(
+                                leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
+                        leftSiblingNode.deleteChildNode(
+                                leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
+                    }
 
-        else {
-            if (leftSiblingNode == null) {
-                for (int i = 0; i < parent.getChildNodes().size(); i++) {
-                    rightSiblingNode.insertChild(parent.getChildNode(i));
+                } else {
+                    for (int i = 0; i < required; i++) {
+                        parent.insertChild(rightSiblingNode.getChildNode(0));
+                        rightSiblingNode.deleteChildNode(rightSiblingNode.getChildNode(0));
+                    }
                 }
-            } else {
-                for (int i = 0; i < parent.getChildNodes().size(); i++) {
-                    leftSiblingNode.insertChild(parent.getChildNode(i));
-                }
+                duplicate = parent.getInternalNode();
             }
 
-            duplicate = parent.getInternalNode();
+            else {
+                if (leftSiblingNode == null) {
+                    for (int i = 0; i < parent.getChildNodes().size(); i++) {
+                        rightSiblingNode.insertChild(parent.getChildNode(i));
+                    }
+                } else {
+                    for (int i = 0; i < parent.getChildNodes().size(); i++) {
+                        leftSiblingNode.insertChild(parent.getChildNode(i));
+                    }
+                }
 
-            parent.deleteNode();
-            numNodes--;
+                duplicate = parent.getInternalNode();
+
+                parent.deleteNode();
+                numNodes--;
+            }
         }
+
         cleanParentNode(duplicate);
     }
 
