@@ -410,12 +410,10 @@ public class BPTree {
 
         // Case 1: If enough keys, no need to borrow or merge but need to update the key
         if (required <= 0) {
-            ArrayList<Node> childNodes = parent.getChildNodes();
             ArrayList<Float> keys = parent.getKeys();
             parent.deleteAllKeys();
             for (int i = 0; i < keys.size(); i++) {
                 Node childNode = parent.getChildNode(i + 1);
-                System.out.println("Required<=0");
                 float key = childNode.retrieveSmallestKey();
                 parent.setKey(key);
             }
