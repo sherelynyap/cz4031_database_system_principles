@@ -291,6 +291,9 @@ public class BPTree {
     }
 
     public void cleanLeafNode(LeafNode leafNode) {
+        // Clean the leaf node if key deficiency happens
+
+        // Case 1: If enough keys, do nothing
         if (leafNode.getKeys().size() >= minLeafKeys) {
             cleanParentNode(leafNode.getInternalNode());
             return;
@@ -311,9 +314,10 @@ public class BPTree {
         if (right != null) {
             rightExcess += right.getKeys().size() - minLeafKeys;
         }
-
-        if (leftExcess + rightExcess >= required) {
-            if (left != null) {
+        
+        // Case 2: Borrow key from siblings if possible, check the left sibling first
+        if (leftExcess >= required || rightExcess >= required) {
+            if (leftExcess >= required) {
                 for (int i = 0; i < left.getAddress(left.getKeys().size() - 1).size(); i++) {
                     leafNode.setAddress(left.getKey(left.getKeys().size() - 1),
                             left.getAddress(left.getKeys().size() - 1).get(i));
@@ -329,6 +333,7 @@ public class BPTree {
             duplicate = leafNode.getInternalNode();
         }
 
+        // Case 3: Otherwise, merge with siblings, check the left sibling first
         else {
             if (left != null) {
                 for (int i = 0; i < leafNode.getKeys().size(); i++) {
@@ -361,13 +366,19 @@ public class BPTree {
             numNodes--;
         }
 
+        // Update the parent node accordingly
         cleanParentNode(duplicate);
     }
 
     public void cleanParentNode(InternalNode parent) {
+        // Clean the parent node after key deficiency happens
+
+        // If the parent is root
+        // If it has more than 1 children, delete the first child node and insert it back to force update
+        // Otherwise delete the root and decrease the number of level
         if (parent.getIsRoot()) {
             if (parent.getChildNodes().size() > 1) {
-                Node child = parent.getChildNode(0);
+                Node child = parent.getChildNode(0); 
                 parent.deleteChildNode(child);
                 parent.insertChild(child);
                 return;
@@ -397,9 +408,11 @@ public class BPTree {
             rightExcess += rightSiblingNode.getKeys().size() - minInternalKeys;
         }
 
-        if (required <= leftExcess + rightExcess) {
-            if (leftSiblingNode != null) {
-                for (int i = 0; i < required; i++) {
+        // Case 1: If enough keys, required will be negative, thus no need to borrow the node from siblings (weird)
+        // Case 2: Borrow key from siblings if possible, check the left sibling first
+        if (required <= leftExcess || required <= rightExcess) {
+            if (leftExcess >= required) {
+                for (int i = 0; i < required; i++) { //shld not be a for loop here
                     parent.insertChildToFront(leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
                     leftSiblingNode.deleteChildNode(
                             leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));
@@ -414,6 +427,7 @@ public class BPTree {
             duplicate = parent.getInternalNode();
         }
 
+        // Case 3: Otherwise, merge with siblings, check the left sibling first
         else {
             if (leftSiblingNode == null) {
                 for (int i = 0; i < parent.getChildNodes().size(); i++) {
@@ -434,6 +448,8 @@ public class BPTree {
     }
 
     private ArrayList<Float> retrieveRangeOfKeys(float lowerBound, float upperBound) {
+        // Retrieve those keys in the B+ Tree that fall within the range specified to facilitate key removal
+        // The mechanism is similar to the retrieveRecordsWithKey function, but return the keys instead of records
         ArrayList<Float> result = new ArrayList<>();
         Node currNode = root;
         InternalNode internalNode;
@@ -477,22 +493,24 @@ public class BPTree {
     }
 
     public ArrayList<Address> retrieveRecordsWithKey(float searchingKey) {
+        // Retrieve records that match the searchingKey
         ArrayList<Address> result = new ArrayList<>();
-        int blockAccess = 1;
+        int nodeAccess = 1;
         Node currNode = root;
         InternalNode internalNode;
 
+        // Traverse down the tree until we reach the leaf node
         while (!currNode.getIsLeaf()) {
             internalNode = (InternalNode) currNode;
             for (int i = 0; i < internalNode.getKeys().size(); i++) {
                 if (Float.compare(searchingKey, internalNode.getKey(i)) <= 0) {
                     currNode = internalNode.getChildNode(i);
-                    blockAccess++;
+                    nodeAccess++;
                     break;
                 }
                 if (i == internalNode.getKeys().size() - 1) {
                     currNode = internalNode.getChildNode(i + 1);
-                    blockAccess++;
+                    nodeAccess++;
                     break;
                 }
             }
@@ -501,6 +519,8 @@ public class BPTree {
         LeafNode curr = (LeafNode) currNode;
         boolean finish = false;
 
+        // Add the address of those records with key same as the searching key to the result
+        // until we encounter a record with a larger key or there is no more record to explore
         while (!finish && curr != null) {
             for (int i = 0; i < curr.getKeys().size(); i++) {
                 if (Float.compare(curr.getKey(i), searchingKey) == 0) {
@@ -515,13 +535,17 @@ public class BPTree {
             if (!finish) {
                 if (curr.getNextNode() != null) {
                     curr = curr.getNextNode();
-                    blockAccess++;
+                    nodeAccess++;
                 } else {
                     break;
                 }
             }
         }
 
+        // We count the number of data blocks accessed using the following algorithm:
+        // Loop through the result list
+        // If the current record is in the same block as the previous record, don't increase the count
+        // Otherwise increase the count by one
         int numDataBlockAccessed = 0;
         if (result.size() == 1) {
             numDataBlockAccessed = 1;
@@ -536,19 +560,22 @@ public class BPTree {
                 }
             }
         }
-
+        
+        // Print out the information
         System.out.println();
         System.out.println("B+ tree");
         System.out.println("------------------------------------------------------------------");
-        System.out.printf("The number of index nodes accessed: %d\n", blockAccess);
+        System.out.printf("The number of index nodes accessed: %d\n", nodeAccess);
         System.out.printf("The number of data blocks accessed: %d\n", numDataBlockAccessed);
 
         return result;
     }
 
     public ArrayList<Address> retrieveRecordsWithKey(float lowerBound, float upperBound) {
+        // Retrieve records with range of keys through method overloading
+        // The mechanism is similar to the version with only one parameter
         ArrayList<Address> addressResult = new ArrayList<>();
-        int totalBlockAccessed = 1;
+        int nodeAccess = 1;
         InternalNode tempIntNode;
         Node thisNode = root;
 
@@ -558,14 +585,14 @@ public class BPTree {
             int lastIndex = numKeys - 1;
             for (int ptr = 0; ptr < numKeys; ptr++) {
                 if (tempIntNode.getKey(ptr) >= lowerBound) {
-                    totalBlockAccessed += 1;
+                    nodeAccess += 1;
                     thisNode = tempIntNode.getChildNode(ptr);
                     break;
                 }
 
                 if (ptr == lastIndex) {
                     int target = lastIndex + 1;
-                    totalBlockAccessed += 1;
+                    nodeAccess += 1;
                     thisNode = tempIntNode.getChildNode(target);
                     break;
                 }
@@ -597,7 +624,7 @@ public class BPTree {
                 if (currentLeafNode.getNextNode() == null) {
                     break;
                 } else {
-                    totalBlockAccessed += 1;
+                    nodeAccess += 1;
                     currentLeafNode = (LeafNode) currentLeafNode.getNextNode();
                 }
             }
@@ -621,7 +648,7 @@ public class BPTree {
         System.out.println();
         System.out.println("B+ tree");
         System.out.println("------------------------------------------------------------------");
-        System.out.printf("The number of index nodes accessed: %d\n", totalBlockAccessed);
+        System.out.printf("The number of index nodes accessed: %d\n", nodeAccess);
         System.out.printf("The number of data blocks accessed: %d\n", numDataBlockAccessed);
 
         return addressResult;
