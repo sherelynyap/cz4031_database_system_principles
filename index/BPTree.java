@@ -409,6 +409,8 @@ public class BPTree {
         }
 
         // Case 1: If enough keys, no need to borrow or merge but need to update the key
+        // We only do manual update for Case 1
+        // Case 2 and 3 implies the deleteNode function has been called previously, which the key will be updated when calling the function
         if (required <= 0) {
             ArrayList<Float> keys = parent.getKeys();
             parent.deleteAllKeys();
