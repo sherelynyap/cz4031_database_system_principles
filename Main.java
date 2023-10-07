@@ -134,7 +134,7 @@ public class Main {
                 default:
                     break;
             }
-        } while (input != "7");
+        } while (!input.equals("7"));
 
         sc.close();
     }
